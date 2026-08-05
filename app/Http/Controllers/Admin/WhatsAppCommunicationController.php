@@ -372,7 +372,7 @@ class WhatsAppCommunicationController extends Controller
         $successCount = 0;
         $failCount = 0;
 
-        foreach ($phoneNumbers as $phoneNumber) {
+        foreach ($phoneNumbers as $index => $phoneNumber) {
             $history = $this->createHistoryRecord($phoneNumber, $message, 'bulk', 'text');
             $result = $this->whatsAppService->sendText($phoneNumber, $message);
             $this->updateHistoryResult($history, $result);
@@ -381,6 +381,11 @@ class WhatsAppCommunicationController extends Controller
                 $successCount++;
             } else {
                 $failCount++;
+            }
+
+            // Add 5-second delay between messages to respect rate limit
+            if ($index < count($phoneNumbers) - 1) {
+                sleep(5);
             }
         }
 
@@ -405,7 +410,7 @@ class WhatsAppCommunicationController extends Controller
         $failCount = 0;
         $media = ['imageUrl' => $request->image_url, 'caption' => $request->caption];
 
-        foreach ($phoneNumbers as $phoneNumber) {
+        foreach ($phoneNumbers as $index => $phoneNumber) {
             $history = $this->createHistoryRecord($phoneNumber, $request->caption ?? '[Image]', 'bulk', 'image', $media);
             $result = $this->whatsAppService->sendImage($phoneNumber, $request->image_url, $request->caption);
             $this->updateHistoryResult($history, $result);
@@ -414,6 +419,11 @@ class WhatsAppCommunicationController extends Controller
                 $successCount++;
             } else {
                 $failCount++;
+            }
+
+            // Add 5-second delay between messages to respect rate limit
+            if ($index < count($phoneNumbers) - 1) {
+                sleep(5);
             }
         }
 
@@ -439,15 +449,20 @@ class WhatsAppCommunicationController extends Controller
         $failCount = 0;
         $media = ['documentUrl' => $request->document_url, 'fileName' => $request->file_name, 'caption' => $request->caption];
 
-        foreach ($phoneNumbers as $phoneNumber) {
+        foreach ($phoneNumbers as $index => $phoneNumber) {
             $history = $this->createHistoryRecord($phoneNumber, $request->caption ?? '[Document: ' . $request->file_name . ']', 'bulk', 'document', $media);
-            $result = $this->whatsAppService->sendDocument($phoneNumber, $request->document_url, $request->file_name, $request->caption);
+            $result = $this->whatsappService->sendDocument($phoneNumber, $request->document_url, $request->file_name, $request->caption);
             $this->updateHistoryResult($history, $result);
 
             if ($result['success']) {
                 $successCount++;
             } else {
                 $failCount++;
+            }
+
+            // Add 5-second delay between messages to respect rate limit
+            if ($index < count($phoneNumbers) - 1) {
+                sleep(5);
             }
         }
 
@@ -495,10 +510,26 @@ class WhatsAppCommunicationController extends Controller
         ]);
 
         $phoneNumbers = array_filter(array_map('trim', explode("\n", $request->phone_numbers)));
-        $result = $this->smsService->sendMultiple($phoneNumbers, $request->message);
+        $successCount = 0;
+        $failCount = 0;
 
-        if ($result['success']) {
-            return back()->with('success', 'Bulk SMS sent successfully.');
+        foreach ($phoneNumbers as $index => $phoneNumber) {
+            $result = $this->smsService->sendSingle($phoneNumber, $request->message);
+
+            if ($result['success']) {
+                $successCount++;
+            } else {
+                $failCount++;
+            }
+
+            // Add 5-second delay between messages to respect rate limit
+            if ($index < count($phoneNumbers) - 1) {
+                sleep(5);
+            }
+        }
+
+        if ($successCount > 0) {
+            return back()->with('success', "Bulk SMS sent: {$successCount} successful, {$failCount} failed.");
         }
 
         return back()->with('error', 'Failed to send bulk SMS: ' . $result['message']);
