@@ -557,6 +557,61 @@ class WhatsAppCommunicationController extends Controller
         return back()->with('error', 'Failed to restart session: ' . ($result['message'] ?? 'Unknown error'));
     }
 
+    public function getSessionDetails($sessionApiKey)
+    {
+        try {
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer ' . $sessionApiKey,
+            ])->get('https://www.wasenderapi.com/api/session-info');
+
+            if ($response->successful()) {
+                return $response->json('data', null);
+            }
+
+            return null;
+        } catch (\Exception $e) {
+            return null;
+        }
+    }
+
+    public function getGroups($sessionApiKey)
+    {
+        try {
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer ' . $sessionApiKey,
+                'Accept' => 'application/json',
+            ])->get('https://www.wasenderapi.com/api/groups');
+
+            if ($response->successful()) {
+                return $response->json('data', []);
+            }
+
+            return [];
+        } catch (\Exception $e) {
+            return [];
+        }
+    }
+
+    public function fetchGroups(Request $request)
+    {
+        $settings = WhatsAppSettings::first();
+        if (!$settings || !$settings->session_api_key) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Session API Key not configured',
+                'groups' => []
+            ]);
+        }
+
+        $groups = $this->getGroups($settings->session_api_key);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Groups fetched successfully',
+            'groups' => $groups
+        ]);
+    }
+
     // =========================================================================
     // WASENDER MEDIA UTILITY ENDPOINTS
     // =========================================================================
