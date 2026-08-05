@@ -24,19 +24,9 @@ class WhatsAppCommunicationController extends Controller
     public function index()
     {
         $settings = WhatsAppSettings::first();
-        $sessions = [];
-        $sessionDetails = null;
         $messageHistory = WhatsAppMessageHistory::latest()->paginate(50);
 
-        if ($settings && $settings->personal_access_token) {
-            $sessions = $this->whatsAppService->getSessions();
-        }
-
-        if ($settings && $settings->session_api_key) {
-            $sessionDetails = $this->whatsAppService->getSessionInfo();
-        }
-
-        return view('admin.communication.whatsapp.index', compact('settings', 'sessions', 'sessionDetails', 'messageHistory'));
+        return view('admin.communication.whatsapp.index', compact('settings', 'messageHistory'));
     }
 
     public function storePersonalAccessToken(Request $request)
