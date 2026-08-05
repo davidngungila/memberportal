@@ -583,7 +583,18 @@ class WhatsAppCommunicationController extends Controller
             ])->get('https://www.wasenderapi.com/api/groups');
 
             if ($response->successful()) {
-                return $response->json('data', []);
+                $data = $response->json();
+                
+                // Try different possible response structures
+                if (isset($data['data'])) {
+                    return $data['data'];
+                } elseif (isset($data['groups'])) {
+                    return $data['groups'];
+                } elseif (is_array($data)) {
+                    return $data;
+                }
+                
+                return [];
             }
 
             return [];
@@ -607,7 +618,7 @@ class WhatsAppCommunicationController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Groups fetched successfully',
+            'message' => count($groups) > 0 ? 'Groups fetched successfully' : 'No groups found',
             'groups' => $groups
         ]);
     }
