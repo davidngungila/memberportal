@@ -425,8 +425,55 @@ class MemberController extends Controller
         
         Gate::authorize('view-member-data', $memberNumber);
 
-        $member = $this->googleSheetRepository->getMemberByNumber($memberNumber);
-        $loans = $this->googleSheetRepository->getMemberLoans($memberNumber);
+        // Get member from database
+        $member = \App\Models\Member::where('member_number', $memberNumber)->first();
+        
+        if (!$member) {
+            $this->error("Member {$memberNumber} not found in database.");
+            return redirect()->route('admin.members.index');
+        }
+
+        // Get loans from database
+        $loans = [];
+        try {
+            $user = \App\Models\User::where('member_number', $memberNumber)->first();
+            if ($user) {
+                $loans = \App\Models\LoanInformation::byUserId($user->id)
+                    ->orderBy('loan_start_date', 'desc')
+                    ->get()
+                    ->map(function ($loan) {
+                        return [
+                            'loan_id' => $loan->loan_id,
+                            'customer_id' => $loan->customer_id,
+                            'loan_type' => $loan->loan_type,
+                            'loan_amount' => (float) $loan->loan_amount,
+                            'nature' => $loan->nature,
+                            'interest_rate_pm' => (float) $loan->interest_rate_pm,
+                            'duration_months' => $loan->duration_months,
+                            'loan_start_date' => $loan->loan_start_date ? $loan->loan_start_date->format('Y-m-d') : null,
+                            'loan_maturity_date' => $loan->loan_maturity_date ? $loan->loan_maturity_date->format('Y-m-d') : null,
+                            'total_payable' => (float) $loan->total_payable,
+                            'monthly_installment' => (float) $loan->monthly_installment,
+                            'monthly_principal' => (float) $loan->monthly_principal,
+                            'principal_paid_to_date' => (float) $loan->principal_paid_to_date,
+                            'termination_fee' => (float) $loan->termination_fee,
+                            'total_paid' => (float) $loan->total_paid,
+                            'outstanding_balance' => (float) $loan->outstanding_balance,
+                            'loan_status' => $loan->loan_status,
+                            'loan_guarantor' => $loan->loan_guarantor,
+                            'number_of_paid_installments' => $loan->number_of_paid_installments,
+                            'number_of_unpaid_installments' => $loan->number_of_unpaid_installments,
+                            'this_month_loan_status' => $loan->this_month_loan_status,
+                            'balance_after_payment' => (float) $loan->balance_after_payment,
+                            'loan_agreement_ref_no' => $loan->loan_agreement_ref_no,
+                        ];
+                    })
+                    ->toArray();
+            }
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Table doesn't exist yet
+            $loans = [];
+        }
 
         ActivityLog::create([
             'user_id' => Auth::id(),
@@ -439,13 +486,19 @@ class MemberController extends Controller
 
         if ($request->wantsJson()) {
             return response()->json([
-                'member' => $member,
+                'member' => [
+                    'member_number' => $member->member_number,
+                    'name' => $member->full_name,
+                ],
                 'loans' => $loans,
             ]);
         }
 
         return view('admin.members.partials.loans', [
-            'member' => $member,
+            'member' => [
+                'member_number' => $member->member_number,
+                'name' => $member->full_name,
+            ],
             'loans' => $loans,
             'memberNumber' => $memberNumber,
             'encryptedMemberNumber' => $encryptedMemberNumber,
