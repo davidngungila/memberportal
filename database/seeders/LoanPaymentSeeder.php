@@ -15,6 +15,17 @@ class LoanPaymentSeeder extends Seeder
 
         DB::table('loan_payments')->truncate();
 
+        // Get loan IDs for loan numbers
+        $loanNumberToIdMap = DB::table('loans')
+            ->pluck('id', 'loan_number')
+            ->toArray();
+
+        // Get user IDs for member numbers
+        $memberToUserMap = DB::table('users')
+            ->whereNotNull('member_number')
+            ->pluck('id', 'member_number')
+            ->toArray();
+
         $paymentsData = [
             ['loan_id' => 'LN001', 'customer_id' => 'PRM2', 'payment_amount' => 1063206.00, 'payment_date' => '2024-03-02', 'payment_method' => 'Loan Deduction (Issue of New Loans)', 'reference_number' => 'Loan Deduction', 'principal_amount' => 2052524.62],
             ['loan_id' => 'LN005', 'customer_id' => 'PRM2', 'payment_amount' => 0.00, 'payment_date' => '2024-03-22', 'payment_method' => 'Niamoja Saving ACC CRDB (0133608488501)', 'reference_number' => '18e667b2c4fd6900', 'principal_amount' => 150000.00],
@@ -302,6 +313,20 @@ class LoanPaymentSeeder extends Seeder
             if ($paymentData['loan_id'] === null) {
                 continue;
             }
+            
+            // Map loan number to loan ID
+            if (isset($paymentData['loan_id']) && isset($loanNumberToIdMap[$paymentData['loan_id']])) {
+                $paymentData['loan_id'] = $loanNumberToIdMap[$paymentData['loan_id']];
+            } else {
+                // Skip if loan number not found
+                continue;
+            }
+            
+            // Map customer_id (member number) to user_id
+            if (isset($paymentData['customer_id']) && isset($memberToUserMap[$paymentData['customer_id']])) {
+                $paymentData['user_id'] = $memberToUserMap[$paymentData['customer_id']];
+            }
+            
             LoanPayment::create($paymentData);
         }
 

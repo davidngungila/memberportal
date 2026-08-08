@@ -351,7 +351,23 @@ class LoanController extends Controller
         })->toArray();
 
         $repaymentHistory = [];
-        if ($paidAmount > 0 && !empty($repaymentSchedule)) {
+        // Fetch actual loan payments from database
+        $actualPayments = \App\Models\LoanPayment::where('loan_id', $loan->id)
+            ->orderBy('payment_date', 'desc')
+            ->get();
+        
+        if ($actualPayments->isNotEmpty()) {
+            $repaymentHistory = $actualPayments->map(function ($payment) {
+                return [
+                    'payment_date' => $payment->payment_date ? $payment->payment_date->format('Y-m-d') : null,
+                    'transaction_ref' => $payment->reference_number ?? 'N/A',
+                    'method' => $payment->payment_method ?? 'N/A',
+                    'amount' => (float) $payment->payment_amount,
+                    'principal' => (float) $payment->principal_amount ?? 0,
+                ];
+            })->toArray();
+        } elseif ($paidAmount > 0 && !empty($repaymentSchedule)) {
+            // Fallback to generated history if no actual payments exist
             $paidCount = (int) floor($paidAmount / $installment);
             $paidCount = min($paidCount, count($repaymentSchedule));
             for ($i = 0; $i < $paidCount; $i++) {
