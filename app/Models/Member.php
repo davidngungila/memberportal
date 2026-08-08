@@ -41,4 +41,9 @@ class Member extends Model
         'date_of_birth' => 'date',
         'registration_fee' => 'decimal:2',
     ];
+
+    public function loans()
+    {
+        return $this->hasMany(Loan::class, 'member_number', 'member_number');
+    }
 }
