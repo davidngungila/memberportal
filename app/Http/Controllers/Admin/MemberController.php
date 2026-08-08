@@ -512,8 +512,61 @@ class MemberController extends Controller
         
         Gate::authorize('view-member-data', $memberNumber);
 
-        $member = $this->googleSheetRepository->getMemberByNumber($memberNumber);
-        $savings = $this->googleSheetRepository->getMemberSavings($memberNumber);
+        // Get member from database
+        $member = \App\Models\Member::where('member_number', $memberNumber)->first();
+        
+        if (!$member) {
+            $this->error("Member {$memberNumber} not found in database.");
+            return redirect()->route('admin.members.index');
+        }
+
+        // Get savings from database
+        $savings = [
+            'balance' => 0,
+            'running_balance' => 0,
+            'transactions' => []
+        ];
+        
+        try {
+            $dbTransactions = \App\Models\Transaction::byMemberCode($memberNumber)
+                ->orderBy('date', 'asc')
+                ->get()
+                ->map(function ($transaction) {
+                    return [
+                        'date' => $transaction->date->format('Y-m-d'),
+                        'type' => $transaction->transaction_type,
+                        'amount' => (float) $transaction->amount,
+                        'reference' => $transaction->reference_no ?? '',
+                        'balance_after' => null,
+                        'source' => 'database'
+                    ];
+                })
+                ->toArray();
+
+            // Calculate running balance
+            $currentBalance = 0;
+            foreach ($dbTransactions as &$transaction) {
+                $type = strtolower($transaction['type'] ?? '');
+                $isCredit = $type === 'deposit' || $type === 'flexi-deposit' || $type === 'rda-deposit' || $type === 'opening balance' || $type === 'interest';
+                
+                if ($isCredit) {
+                    $currentBalance += (float) ($transaction['amount'] ?? 0);
+                } else {
+                    $currentBalance -= (float) ($transaction['amount'] ?? 0);
+                }
+                
+                $transaction['balance_after'] = $currentBalance;
+            }
+
+            // Sort by date descending for display
+            usort($dbTransactions, static fn($a, $b): int => strtotime($b['date'] ?? '') <=> strtotime($a['date'] ?? ''));
+
+            $savings['transactions'] = $dbTransactions;
+            $savings['running_balance'] = $currentBalance;
+            $savings['balance'] = $currentBalance;
+        } catch (\Exception $e) {
+            // Table might not exist, skip transactions
+        }
 
         ActivityLog::create([
             'user_id' => Auth::id(),
@@ -526,13 +579,19 @@ class MemberController extends Controller
 
         if ($request->wantsJson()) {
             return response()->json([
-                'member' => $member,
+                'member' => [
+                    'member_number' => $member->member_number,
+                    'name' => $member->full_name,
+                ],
                 'savings' => $savings,
             ]);
         }
 
         return view('admin.members.partials.savings', [
-            'member' => $member,
+            'member' => [
+                'member_number' => $member->member_number,
+                'name' => $member->full_name,
+            ],
             'savings' => $savings,
             'memberNumber' => $memberNumber,
             'encryptedMemberNumber' => $encryptedMemberNumber,
