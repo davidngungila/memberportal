@@ -74,7 +74,7 @@
               </td>
               <td>
                 <div class="text-sm">
-                  <p class="font-semibold text-primary-900 dark:text-white">{{ $savingPlan->user ? $savingPlan->user->name : '—' }}</p>
+                  <p class="font-semibold text-primary-900 dark:text-white">{{ $savingPlan->member ? $savingPlan->member->full_name : ($savingPlan->user ? $savingPlan->user->name : '—') }}</p>
                   <p class="text-xs text-primary-500">{{ $savingPlan->member_number }}</p>
                 </div>
               </td>

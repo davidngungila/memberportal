@@ -48,4 +48,9 @@ class SavingPlan extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function member()
+    {
+        return $this->belongsTo(Member::class, 'member_number', 'member_number');
+    }
 }

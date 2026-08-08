@@ -22,7 +22,7 @@ class SavingPlanController extends Controller
 
     public function index(Request $request)
     {
-        $query = SavingPlan::with('user');
+        $query = SavingPlan::with('user', 'member');
 
         if ($request->filled('member_number')) {
             $query->byMemberNumber($request->member_number);
