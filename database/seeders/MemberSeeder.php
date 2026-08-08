@@ -269,6 +269,11 @@ class MemberSeeder extends Seeder
         ];
 
         foreach ($membersData as $memberData) {
+            // Set default status if null
+            if (!isset($memberData['status']) || $memberData['status'] === null) {
+                $memberData['status'] = 'Provisional';
+            }
+
             // Create member record
             $member = Member::create($memberData);
 
