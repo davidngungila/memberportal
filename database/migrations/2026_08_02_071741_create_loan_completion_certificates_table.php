@@ -13,6 +13,11 @@ return new class extends Migration
     {
         Schema::create('loan_completion_certificates', function (Blueprint $table) {
             $table->id();
+            $table->string('certificate_number')->unique();
+            $table->foreignId('loan_id')->constrained('loans')->onDelete('cascade');
+            $table->date('completion_date')->nullable();
+            $table->boolean('is_active')->default(true);
+            $table->text('notes')->nullable();
             $table->timestamps();
         });
     }
