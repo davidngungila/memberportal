@@ -9,6 +9,8 @@ use App\Services\SmsService;
 use App\Services\WhatsAppService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class WhatsAppCommunicationController extends Controller
 {
@@ -562,14 +564,22 @@ class WhatsAppCommunicationController extends Controller
         try {
             $response = Http::withHeaders([
                 'Authorization' => 'Bearer ' . $sessionApiKey,
-            ])->get('https://www.wasenderapi.com/api/session-info');
+            ])->timeout(30)->get('https://www.wasenderapi.com/api/session-info');
 
             if ($response->successful()) {
                 return $response->json('data', null);
             }
 
+            Log::error('WhatsApp getSessionDetails failed', [
+                'status' => $response->status(),
+                'body' => $response->body(),
+            ]);
             return null;
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
+            Log::error('WhatsApp getSessionDetails exception', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return null;
         }
     }
@@ -580,12 +590,11 @@ class WhatsAppCommunicationController extends Controller
             $response = Http::withHeaders([
                 'Authorization' => 'Bearer ' . $sessionApiKey,
                 'Accept' => 'application/json',
-            ])->get('https://www.wasenderapi.com/api/groups');
+            ])->timeout(30)->get('https://www.wasenderapi.com/api/groups');
 
             if ($response->successful()) {
                 $data = $response->json();
-                
-                // Try different possible response structures
+
                 if (isset($data['data'])) {
                     return $data['data'];
                 } elseif (isset($data['groups'])) {
@@ -593,34 +602,88 @@ class WhatsAppCommunicationController extends Controller
                 } elseif (is_array($data)) {
                     return $data;
                 }
-                
+
+                Log::warning('WhatsApp getGroups: Unknown response structure', [
+                    'body' => $response->body(),
+                ]);
                 return [];
             }
 
+            Log::error('WhatsApp getGroups HTTP error', [
+                'status' => $response->status(),
+                'body' => $response->body(),
+            ]);
             return [];
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
+            Log::error('WhatsApp getGroups exception', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return [];
         }
     }
 
     public function fetchGroups(Request $request)
     {
+        $result = $this->whatsAppService->getGroups();
+        $groups = $result['groups'] ?? [];
+
         $settings = WhatsAppSettings::first();
-        if (!$settings || !$settings->session_api_key) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Session API Key not configured',
-                'groups' => []
+        $sessionStatus = $settings->session_status ?? null;
+
+        $sessionInfo = $this->whatsAppService->getSessionInfo();
+        $sessionConnected = $sessionInfo['connected'] ?? ($sessionStatus === 'connected');
+
+        if (count($groups) === 0) {
+            Log::warning('WhatsApp fetchGroups: No groups returned', [
+                'success' => $result['success'] ?? false,
+                'error_message' => $result['message'] ?? null,
+                'session_connected' => $sessionConnected,
+                'session_status' => $sessionStatus,
             ]);
         }
 
-        $groups = $this->getGroups($settings->session_api_key);
-
         return response()->json([
-            'success' => true,
-            'message' => count($groups) > 0 ? 'Groups fetched successfully' : 'No groups found',
-            'groups' => $groups
+            'success' => $result['success'] ?? (count($groups) > 0),
+            'message' => $result['message'] ?? (count($groups) > 0 ? 'Groups fetched successfully' : 'No groups found'),
+            'groups' => $groups,
+            'session_connected' => $sessionConnected,
+            'session_status' => $sessionStatus,
         ]);
+    }
+
+    public function addGroupParticipants(Request $request)
+    {
+        $validated = $request->validate([
+            'group_jid'    => 'required|string|max:255',
+            'participants' => 'required|string',
+        ]);
+
+        $groupJid = trim($validated['group_jid']);
+        $participants = preg_split("/[\r\n,;|]+/", $validated['participants'], -1, PREG_SPLIT_NO_EMPTY);
+        $participants = is_array($participants) ? array_map('trim', $participants) : [];
+        $participants = array_values(array_filter($participants, function ($v) { return $v !== ''; }));
+
+        $result = $this->whatsAppService->addParticipantsToGroup($groupJid, $participants);
+
+        Log::info('WhatsApp addGroupParticipants request', [
+            'group_jid'    => $groupJid,
+            'requested'    => count($participants),
+            'sent_count'   => $result['added_count'] ?? null,
+            'normalized'   => $result['participants'] ?? null,
+            'success'      => $result['success'] ?? false,
+            'message'      => $result['message'] ?? null,
+        ]);
+
+        if ($request->expectsJson()) {
+            return response()->json($result);
+        }
+
+        if (!empty($result['success'])) {
+            return back()->with('success', $result['message'] . ' (' . ($result['added_count'] ?? count($participants)) . ' numbers processed)');
+        }
+
+        return back()->with('error', 'Failed to add participants: ' . ($result['message'] ?? 'Unknown error'));
     }
 
     // =========================================================================

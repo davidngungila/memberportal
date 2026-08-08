@@ -482,6 +482,7 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->name('admin.')->grou
         Route::post('/whatsapp/disconnect-session', [\App\Http\Controllers\Admin\WhatsAppCommunicationController::class, 'disconnectSession'])->name('whatsapp.disconnect-session');
         Route::post('/whatsapp/restart-session', [\App\Http\Controllers\Admin\WhatsAppCommunicationController::class, 'restartSession'])->name('whatsapp.restart-session');
         Route::get('/whatsapp/groups', [\App\Http\Controllers\Admin\WhatsAppCommunicationController::class, 'fetchGroups'])->name('whatsapp.groups');
+        Route::post('/whatsapp/groups/participants/add', [\App\Http\Controllers\Admin\WhatsAppCommunicationController::class, 'addGroupParticipants'])->name('whatsapp.groups.participants.add');
         Route::post('/whatsapp/send', [\App\Http\Controllers\Admin\CommunicationController::class, 'sendWhatsApp'])->name('whatsapp.send');
         Route::get('/whatsapp/test', [\App\Http\Controllers\Admin\CommunicationController::class, 'testWhatsAppPage'])->name('whatsapp.test');
         Route::post('/whatsapp/test', [\App\Http\Controllers\Admin\CommunicationController::class, 'testWhatsApp'])->name('whatsapp.test.send');

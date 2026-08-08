@@ -430,6 +430,157 @@ class WhatsAppService
         }
     }
 
+    public function getGroups(): array
+    {
+        $apiKey = $this->getWasenderApiKey();
+        if (!$apiKey) {
+            Log::error('WhatsApp WasenderAPI getGroups: No session API key configured');
+            return [
+                'success' => false,
+                'message' => 'Session API Key is not set. Please configure it in WhatsApp settings.',
+                'groups'  => [],
+            ];
+        }
+
+        try {
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer ' . $apiKey,
+                'Accept'        => 'application/json',
+            ])->timeout(30)->get($this->wasenderBaseUrl . '/groups');
+
+            if ($response->successful()) {
+                $body = $response->json();
+                $groups = [];
+                if (isset($body['data'])) {
+                    $groups = $body['data'];
+                } elseif (isset($body['groups'])) {
+                    $groups = $body['groups'];
+                } elseif (is_array($body)) {
+                    $groups = $body;
+                }
+
+                return [
+                    'success' => true,
+                    'groups'  => $groups,
+                    'message' => count($groups) > 0 ? 'Groups retrieved successfully' : 'No groups found',
+                ];
+            }
+
+            Log::error('WhatsApp WasenderAPI getGroups failed', [
+                'status' => $response->status(),
+                'body'   => $response->body(),
+            ]);
+
+            return [
+                'success' => false,
+                'status'  => $response->status(),
+                'message' => $response->json('message') ?? $response->body() ?? 'Failed to retrieve groups',
+                'groups'  => [],
+            ];
+        } catch (\Throwable $e) {
+            Log::error('WhatsApp WasenderAPI getGroups exception', [
+                'message' => $e->getMessage(),
+                'trace'   => $e->getTraceAsString(),
+            ]);
+            return [
+                'success' => false,
+                'message' => $e->getMessage(),
+                'groups'  => [],
+            ];
+        }
+    }
+
+    public function addParticipantsToGroup(string $groupJid, array $participants): array
+    {
+        $apiKey = $this->getWasenderApiKey();
+        if (!$apiKey) {
+            Log::error('WhatsApp WasenderAPI addParticipantsToGroup: No session API key configured');
+            return [
+                'success' => false,
+                'message' => 'Session API Key is not set. Please configure it in WhatsApp settings.',
+            ];
+        }
+
+        if (!$groupJid) {
+            return [
+                'success' => false,
+                'message' => 'Group ID (JID) is required.',
+            ];
+        }
+
+        $cleanParticipants = [];
+        foreach ($participants as $p) {
+            if (!is_string($p)) continue;
+            $num = preg_replace('/[^0-9]/', '', trim($p));
+            if ($num === '') continue;
+            if (!str_starts_with($num, '255')) {
+                $num = '255' . ltrim($num, '0');
+            }
+            if (strlen($num) < 12) continue;
+            $cleanParticipants[] = $num;
+        }
+
+        $cleanParticipants = array_values(array_unique($cleanParticipants));
+
+        if (count($cleanParticipants) === 0) {
+            return [
+                'success' => false,
+                'message' => 'At least one valid phone number is required.',
+            ];
+        }
+
+        try {
+            $url = rtrim($this->wasenderBaseUrl, '/') . '/groups/' . rawurlencode($groupJid) . '/participants/add';
+
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer ' . $apiKey,
+                'Content-Type'  => 'application/json',
+                'Accept'        => 'application/json',
+            ])->timeout(60)->asJson()->post($url, [
+                'participants' => $cleanParticipants,
+            ]);
+
+            $body = $response->json();
+
+            if ($response->successful() && (
+                (isset($body['success']) && $body['success'] === true) ||
+                $response->status() === 200
+            )) {
+                return [
+                    'success' => true,
+                    'data'    => $body['data'] ?? $body,
+                    'message' => $body['message'] ?? 'Participants added successfully',
+                    'added_count' => count($cleanParticipants),
+                    'participants' => $cleanParticipants,
+                ];
+            }
+
+            Log::error('WhatsApp WasenderAPI addParticipantsToGroup failed', [
+                'status'  => $response->status(),
+                'body'    => $response->body(),
+                'groupJid' => $groupJid,
+                'participants' => $cleanParticipants,
+            ]);
+
+            return [
+                'success' => false,
+                'status'  => $response->status(),
+                'message' => $body['message'] ?? $response->body() ?? 'Failed to add participants',
+                'participants' => $cleanParticipants,
+            ];
+        } catch (\Throwable $e) {
+            Log::error('WhatsApp WasenderAPI addParticipantsToGroup exception', [
+                'message' => $e->getMessage(),
+                'trace'   => $e->getTraceAsString(),
+                'groupJid' => $groupJid,
+            ]);
+            return [
+                'success' => false,
+                'message' => $e->getMessage(),
+            ];
+        }
+    }
+
     public function decryptMedia(array $messageData): array
     {
         $apiKey = $this->getWasenderApiKey();

@@ -39,28 +39,7 @@
     </div>
 
     <!-- Channel Type Tabs -->
-    <div x-data="{
-            channelType: 'whatsapp',
-            messageScope: 'single',
-            msgType: 'text',
-            uploadedUrl: '{{ session('uploaded_url', '') }}',
-            groups: [],
-            groupsLoading: false,
-            selectedGroup: null,
-            loadGroups() {
-              this.groupsLoading = true;
-              fetch('{{ route('admin.communication.whatsapp.groups') }}')
-                .then(r => r.json())
-                .then(data => {
-                  this.groups = data.groups || [];
-                  this.groupsLoading = false;
-                })
-                .catch(() => {
-                  this.groupsLoading = false;
-                });
-            }
-         }"
-         class="space-y-6">
+    <div x-data="wpComm()" class="space-y-6">
       <div class="flex gap-2 border-b border-primary-200 dark:border-primary-800">
         <button @click="channelType = 'whatsapp'"
                 :class="channelType === 'whatsapp' ? 'border-b-2 border-green-500 text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'"
@@ -422,16 +401,17 @@
 
             <div x-show="!groupsLoading && groups.length === 0" class="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-6 text-center">
               <i class="fa-solid fa-user-group text-4xl text-gray-400 dark:text-gray-500 mb-3"></i>
-              <p class="text-sm text-gray-600 dark:text-gray-400">No groups found. Make sure your WhatsApp session is connected and has groups.</p>
+              <p x-show="!groupsError" class="text-sm text-gray-600 dark:text-gray-400">No groups found. Make sure your WhatsApp session is connected and has groups.</p>
+              <p x-show="groupsError" class="text-sm text-red-600 dark:text-red-400 font-medium mb-1" x-text="groupsError"></p>
               <button type="button" @click="loadGroups()" class="mt-3 px-4 py-2 rounded-lg bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold transition-all">
                 <i class="fa-solid fa-refresh mr-2"></i>Reload Groups
               </button>
             </div>
 
             <div x-show="!groupsLoading && groups.length > 0" class="space-y-3">
-              <template x-for="group in groups" :key="group.id || group.jid">
+              <template x-for="group in groups" :key="groupKey(group)">
                 <div @click="selectedGroup = group"
-                     :class="selectedGroup && (selectedGroup.id === group.id || selectedGroup.jid === group.jid) ? 'border-green-500 bg-green-50 dark:bg-green-900/20' : 'border-gray-200 dark:border-gray-700 hover:border-primary-300 dark:hover:border-primary-600'"
+                     :class="isSelectedGroup(group) ? 'border-green-500 bg-green-50 dark:bg-green-900/20' : 'border-gray-200 dark:border-gray-700 hover:border-primary-300 dark:hover:border-primary-600'"
                      class="border rounded-lg p-4 cursor-pointer transition-all">
                   <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
@@ -439,9 +419,9 @@
                     </div>
                     <div class="flex-1">
                       <p class="text-sm font-semibold text-gray-900 dark:text-white" x-text="group.name || group.subject || 'Unknown Group'"></p>
-                      <p class="text-xs text-gray-500 dark:text-gray-400" x-text="group.jid || group.id || ''"></p>
+                      <p class="text-xs text-gray-500 dark:text-gray-400" x-text="group.id || group.jid || ''"></p>
                     </div>
-                    <i :class="selectedGroup && (selectedGroup.id === group.id || selectedGroup.jid === group.jid) ? 'fa-solid fa-circle-check text-green-600 dark:text-green-400' : 'fa-regular fa-circle text-gray-400'" class="text-xl"></i>
+                    <i :class="isSelectedGroup(group) ? 'fa-solid fa-circle-check text-green-600 dark:text-green-400' : 'fa-regular fa-circle text-gray-400'" class="text-xl"></i>
                   </div>
                 </div>
               </template>
@@ -450,171 +430,259 @@
 
           <!-- Group Message Form -->
           <div x-show="selectedGroup" x-transition>
-            <form action="{{ route('admin.communication.whatsapp.send-single') }}" method="POST">
+            <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 mb-4">
+              <p class="text-sm font-semibold text-green-800 dark:text-green-200">
+                <i class="fa-solid fa-check-circle mr-2"></i>Selected Group:
+              </p>
+              <p class="text-sm text-green-700 dark:text-green-300 mt-1" x-text="(selectedGroup && (selectedGroup.name || selectedGroup.subject)) || 'Unknown Group'"></p>
+            </div>
+
+            <!-- Add Participants to Group -->
+            <div class="border border-primary-200 dark:border-primary-800 rounded-xl p-5 mb-6 bg-white dark:bg-dark-card">
+              <div class="flex items-center gap-2 mb-4">
+                <div class="w-9 h-9 rounded-lg bg-primary-100 dark:bg-primary-900/40 flex items-center justify-center">
+                  <i class="fa-solid fa-user-plus text-primary-600 dark:text-primary-300"></i>
+                </div>
+                <div>
+                  <h3 class="text-base font-bold text-gray-900 dark:text-white">Add Participants to Group</h3>
+                  <p class="text-xs text-gray-500 dark:text-gray-400">Add new members using the WasenderAPI groups endpoint</p>
+                </div>
+              </div>
+
+              <form
+                @submit.prevent="submitAddParticipants($event)"
+                action="{{ route('admin.communication.whatsapp.groups.participants.add') }}"
+                method="POST">
+                @csrf
+                <input type="hidden" name="group_jid" :value="selectedGroup && (selectedGroup.id || selectedGroup.jid)">
+                <input type="hidden" name="_http_referer" value="groups_panel">
+
+                <div class="mb-4">
+                  <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    Phone Numbers <span class="text-red-500">*</span>
+                  </label>
+                  <textarea
+                    x-model="addParticipantsText"
+                    name="participants"
+                    rows="5"
+                    required
+                    :placeholder="participantsPlaceholder"
+                    class="w-full px-4 py-2.5 rounded-lg border border-primary-200 dark:border-dark-border bg-white dark:bg-dark-card text-primary-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all resize-none font-mono text-sm"></textarea>
+                  <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    <i class="fa-solid fa-circle-info mr-1"></i>
+                    Tanzanian numbers are auto-prefixed with <code class="text-primary-600 dark:text-primary-300">255</code>. Duplicates are removed automatically.
+                  </p>
+                </div>
+
+                <div class="flex items-center justify-between gap-3 flex-wrap">
+                  <button
+                    type="submit"
+                    :disabled="addParticipantsLoading || addParticipantsText.trim() === ''"
+                    :class="(addParticipantsLoading || addParticipantsText.trim() === '') ? 'opacity-60 cursor-not-allowed' : ''"
+                    class="px-5 py-2.5 rounded-lg bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white text-sm font-semibold transition-all shadow-lg shadow-primary-500/20">
+                    <i :class="addParticipantsLoading ? 'fa-solid fa-spinner fa-spin' : 'fa-solid fa-user-plus'" class="mr-2"></i>
+                    <span x-text="addParticipantsLoading ? 'Adding…' : 'Add Participants'"></span>
+                  </button>
+                  <button
+                    type="button"
+                    @click="addParticipantsText = ''; addParticipantsResult = null;"
+                    :disabled="addParticipantsLoading"
+                    class="text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors">
+                    <i class="fa-solid fa-xmark mr-1"></i>Clear
+                  </button>
+                </div>
+
+                <!-- Result Banner -->
+                <div x-show="addParticipantsResult" x-transition
+                     :class="addParticipantsResult.ok
+                              ? 'border-green-300 bg-green-50 dark:bg-green-900/20 dark:border-green-800 text-green-800 dark:text-green-200'
+                              : 'border-red-300 bg-red-50 dark:bg-red-900/20 dark:border-red-800 text-red-800 dark:text-red-200'"
+                     class="mt-4 border rounded-lg p-3 text-sm">
+                  <p class="flex items-center gap-2 font-semibold">
+                    <i :class="addParticipantsResult.ok ? 'fa-solid fa-circle-check text-green-600 dark:text-green-400' : 'fa-solid fa-triangle-exclamation text-red-600 dark:text-red-400'"></i>
+                    <span x-text="addParticipantsResult.message"></span>
+                  </p>
+                  <p x-show="addParticipantsResult.ok && addParticipantsResult.data && addParticipantsResult.data.added_count"
+                     class="mt-1 text-xs opacity-90">
+                    Processed: <span class="font-mono" x-text="addParticipantsResult.data.added_count"></span> numbers
+                  </p>
+                  <p x-show="addParticipantsResult.ok && addParticipantsResult.data && addParticipantsResult.data.participants"
+                     class="mt-1 text-xs opacity-80 font-mono break-all">
+                    Sent: <span x-text="addParticipantsResult.data.participants.join(', ')"></span>
+                  </p>
+                </div>
+              </form>
+            </div>
+
+            <!-- Message Type Selector -->
+            <div class="mb-5">
+              <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                <i class="fa-solid fa-layer-group mr-1 text-primary-500"></i>Message Type
+              </label>
+              <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
+                @php
+                  $msgTypes = [
+                      'text'     => ['icon' => 'fa-message',       'label' => 'Text',     'color' => 'emerald'],
+                      'image'    => ['icon' => 'fa-image',         'label' => 'Image',    'color' => 'indigo'],
+                      'video'    => ['icon' => 'fa-video',         'label' => 'Video',    'color' => 'rose'],
+                      'document' => ['icon' => 'fa-file-pdf',      'label' => 'Document', 'color' => 'amber'],
+                      'audio'    => ['icon' => 'fa-music',         'label' => 'Audio',    'color' => 'violet'],
+                      'sticker'  => ['icon' => 'fa-face-smile',    'label' => 'Sticker',  'color' => 'pink'],
+                      'contact'  => ['icon' => 'fa-address-book',  'label' => 'Contact',  'color' => 'cyan'],
+                      'location' => ['icon' => 'fa-location-dot',  'label' => 'Location', 'color' => 'orange'],
+                  ];
+                @endphp
+                @foreach($msgTypes as $key => $mt)
+                  <button type="button" @click="msgType = '{{ $key }}'"
+                          :class="msgType === '{{ $key }}'
+                                   ? 'bg-{{ $mt['color'] }}-50 border-{{ $mt['color'] }}-400 text-{{ $mt['color'] }}-700 dark:bg-{{ $mt['color'] }}-900/30 dark:border-{{ $mt['color'] }}-600 dark:text-{{ $mt['color'] }}-300 shadow-sm'
+                                   : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100 dark:bg-gray-800/50 dark:border-gray-700 dark:text-gray-300'"
+                          class="group border rounded-xl p-3 text-center transition-all">
+                    <i class="fa-solid {{ $mt['icon'] }} text-lg mb-1"></i>
+                    <p class="text-xs font-semibold">{{ $mt['label'] }}</p>
+                  </button>
+                @endforeach
+              </div>
+            </div>
+
+            <!-- Group - Text Form -->
+            <form x-show="msgType === 'text'" x-transition action="{{ route('admin.communication.whatsapp.send-single') }}" method="POST">
               @csrf
-              <input type="hidden" name="phone_number" :value="selectedGroup.jid || selectedGroup.id">
-              
-              <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 mb-4">
-                <p class="text-sm font-semibold text-green-800 dark:text-green-200">
-                  <i class="fa-solid fa-check-circle mr-2"></i>Selected Group:
-                </p>
-                <p class="text-sm text-green-700 dark:text-green-300 mt-1" x-text="selectedGroup.name || selectedGroup.subject || 'Unknown Group'"></p>
+              <input type="hidden" name="phone_number" :value="selectedGroup && (selectedGroup.id || selectedGroup.jid)">
+              <div class="mb-4">
+                <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Message</label>
+                <textarea name="message" rows="5" required placeholder="Enter message text to send to the group..."
+                          class="w-full px-4 py-2.5 rounded-lg border border-primary-200 dark:border-dark-border bg-white dark:bg-dark-card text-primary-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all resize-none"></textarea>
               </div>
+              <button type="submit" class="px-5 py-2 rounded-lg bg-gradient-to-r from-green-500 to-green-600 text-white text-sm font-semibold transition-all shadow-lg shadow-green-500/20">
+                <i class="fa-solid fa-message mr-2"></i>Send to Group
+              </button>
+            </form>
 
-              <!-- Message Type Selector -->
-              <div class="mb-5">
-                <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                  <i class="fa-solid fa-layer-group mr-1 text-primary-500"></i>Message Type
-                </label>
-                <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
-                  @php
-                    $msgTypes = [
-                        'text'     => ['icon' => 'fa-message',       'label' => 'Text',     'color' => 'emerald'],
-                        'image'    => ['icon' => 'fa-image',         'label' => 'Image',    'color' => 'indigo'],
-                        'video'    => ['icon' => 'fa-video',         'label' => 'Video',    'color' => 'rose'],
-                        'document' => ['icon' => 'fa-file-pdf',      'label' => 'Document', 'color' => 'amber'],
-                        'audio'    => ['icon' => 'fa-music',         'label' => 'Audio',    'color' => 'violet'],
-                        'sticker'  => ['icon' => 'fa-face-smile',    'label' => 'Sticker',  'color' => 'pink'],
-                        'contact'  => ['icon' => 'fa-address-book',  'label' => 'Contact',  'color' => 'cyan'],
-                        'location' => ['icon' => 'fa-location-dot',  'label' => 'Location', 'color' => 'orange'],
-                    ];
-                  @endphp
-                  @foreach($msgTypes as $key => $mt)
-                    <button type="button" @click="msgType = '{{ $key }}'"
-                            :class="msgType === '{{ $key }}'
-                                     ? 'bg-{{ $mt['color'] }}-50 border-{{ $mt['color'] }}-400 text-{{ $mt['color'] }}-700 dark:bg-{{ $mt['color'] }}-900/30 dark:border-{{ $mt['color'] }}-600 dark:text-{{ $mt['color'] }}-300 shadow-sm'
-                                     : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100 dark:bg-gray-800/50 dark:border-gray-700 dark:text-gray-300'"
-                            class="group border rounded-xl p-3 text-center transition-all">
-                      <i class="fa-solid {{ $mt['icon'] }} text-lg mb-1"></i>
-                      <p class="text-xs font-semibold">{{ $mt['label'] }}</p>
-                    </button>
-                  @endforeach
+            <!-- Group - Image Form -->
+            <form x-show="msgType === 'image'" x-transition action="{{ route('admin.communication.whatsapp.send-image') }}" method="POST">
+              @csrf
+              <input type="hidden" name="phone_number" :value="selectedGroup && (selectedGroup.id || selectedGroup.jid)">
+              @include('admin.communication.whatsapp.partials._url_field', ['name'=>'image_url', 'label'=>'Image URL', 'placeholder'=>'https://.../photo.jpg', 'required'=>true, 'help'=>'Public image URL'])
+              <div class="mb-4">
+                <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Caption <span class="text-gray-400 font-normal">(optional)</span></label>
+                <textarea name="caption" rows="3" placeholder="Image caption..."
+                          class="w-full px-4 py-2.5 rounded-lg border border-primary-200 dark:border-dark-border bg-white dark:bg-dark-card text-primary-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all resize-none"></textarea>
+              </div>
+              <button type="submit" class="px-5 py-2 rounded-lg bg-gradient-to-r from-indigo-500 to-indigo-600 text-white text-sm font-semibold transition-all shadow-lg shadow-indigo-500/20">
+                <i class="fa-solid fa-image mr-2"></i>Send Image to Group
+              </button>
+            </form>
+
+            <!-- Group - Video Form -->
+            <form x-show="msgType === 'video'" x-transition action="{{ route('admin.communication.whatsapp.send-video') }}" method="POST">
+              @csrf
+              <input type="hidden" name="phone_number" :value="selectedGroup && (selectedGroup.id || selectedGroup.jid)">
+              @include('admin.communication.whatsapp.partials._url_field', ['name'=>'video_url', 'label'=>'Video URL', 'placeholder'=>'https://.../video.mp4', 'required'=>true, 'help'=>'Public video URL (MP4, 3GP)'])
+              <div class="mb-4">
+                <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Caption <span class="text-gray-400 font-normal">(optional)</span></label>
+                <textarea name="caption" rows="3" placeholder="Video caption..."
+                          class="w-full px-4 py-2.5 rounded-lg border border-primary-200 dark:border-dark-border bg-white dark:bg-dark-card text-primary-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all resize-none"></textarea>
+              </div>
+              <button type="submit" class="px-5 py-2 rounded-lg bg-gradient-to-r from-rose-500 to-rose-600 text-white text-sm font-semibold transition-all shadow-lg shadow-rose-500/20">
+                <i class="fa-solid fa-video mr-2"></i>Send Video to Group
+              </button>
+            </form>
+
+            <!-- Group - Document Form -->
+            <form x-show="msgType === 'document'" x-transition action="{{ route('admin.communication.whatsapp.send-document') }}" method="POST">
+              @csrf
+              <input type="hidden" name="phone_number" :value="selectedGroup && (selectedGroup.id || selectedGroup.jid)">
+              @include('admin.communication.whatsapp.partials._url_field', ['name'=>'document_url', 'label'=>'Document URL', 'placeholder'=>'https://.../report.pdf', 'required'=>true, 'help'=>'Public document URL'])
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">File Name</label>
+                  <input type="text" name="file_name" required placeholder="report.pdf"
+                         class="w-full px-4 py-2.5 rounded-lg border border-primary-200 dark:border-dark-border bg-white dark:bg-dark-card text-primary-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all">
                 </div>
-              </div>
-
-              <!-- Group - Text Form -->
-              <div x-show="msgType === 'text'" x-transition>
-                <div class="mb-4">
-                  <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Message</label>
-                  <textarea name="message" rows="5" required placeholder="Enter message text to send to the group..."
-                            class="w-full px-4 py-2.5 rounded-lg border border-primary-200 dark:border-dark-border bg-white dark:bg-dark-card text-primary-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all resize-none"></textarea>
-                </div>
-                <button type="submit" class="px-5 py-2 rounded-lg bg-gradient-to-r from-green-500 to-green-600 text-white text-sm font-semibold transition-all shadow-lg shadow-green-500/20">
-                  <i class="fa-solid fa-message mr-2"></i>Send to Group
-                </button>
-              </div>
-
-              <!-- Group - Image Form -->
-              <div x-show="msgType === 'image'" x-transition>
-                @include('admin.communication.whatsapp.partials._url_field', ['name'=>'image_url', 'label'=>'Image URL', 'placeholder'=>'https://.../photo.jpg', 'required'=>true, 'help'=>'Public image URL'])
-                <div class="mb-4">
+                <div>
                   <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Caption <span class="text-gray-400 font-normal">(optional)</span></label>
-                  <textarea name="caption" rows="3" placeholder="Image caption..."
-                            class="w-full px-4 py-2.5 rounded-lg border border-primary-200 dark:border-dark-border bg-white dark:bg-dark-card text-primary-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all resize-none"></textarea>
+                  <input type="text" name="caption" placeholder="Document description..."
+                         class="w-full px-4 py-2.5 rounded-lg border border-primary-200 dark:border-dark-border bg-white dark:bg-dark-card text-primary-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all">
                 </div>
-                <button type="submit" class="px-5 py-2 rounded-lg bg-gradient-to-r from-indigo-500 to-indigo-600 text-white text-sm font-semibold transition-all shadow-lg shadow-indigo-500/20">
-                  <i class="fa-solid fa-image mr-2"></i>Send Image to Group
-                </button>
               </div>
+              <button type="submit" class="px-5 py-2 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 text-white text-sm font-semibold transition-all shadow-lg shadow-amber-500/20">
+                <i class="fa-solid fa-file-pdf mr-2"></i>Send Document to Group
+              </button>
+            </form>
 
-              <!-- Group - Video Form -->
-              <div x-show="msgType === 'video'" x-transition>
-                @include('admin.communication.whatsapp.partials._url_field', ['name'=>'video_url', 'label'=>'Video URL', 'placeholder'=>'https://.../video.mp4', 'required'=>true, 'help'=>'Public video URL (MP4, 3GP)'])
-                <div class="mb-4">
-                  <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Caption <span class="text-gray-400 font-normal">(optional)</span></label>
-                  <textarea name="caption" rows="3" placeholder="Video caption..."
-                            class="w-full px-4 py-2.5 rounded-lg border border-primary-200 dark:border-dark-border bg-white dark:bg-dark-card text-primary-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all resize-none"></textarea>
+            <!-- Group - Audio Form -->
+            <form x-show="msgType === 'audio'" x-transition action="{{ route('admin.communication.whatsapp.send-audio') }}" method="POST">
+              @csrf
+              <input type="hidden" name="phone_number" :value="selectedGroup && (selectedGroup.id || selectedGroup.jid)">
+              @include('admin.communication.whatsapp.partials._url_field', ['name'=>'audio_url', 'label'=>'Audio URL', 'placeholder'=>'https://.../audio.mp3', 'required'=>true, 'help'=>'Public audio URL (MP3, OGG, AMR, max 16MB)'])
+              <button type="submit" class="px-5 py-2 rounded-lg bg-gradient-to-r from-violet-500 to-violet-600 text-white text-sm font-semibold transition-all shadow-lg shadow-violet-500/20">
+                <i class="fa-solid fa-music mr-2"></i>Send Audio to Group
+              </button>
+            </form>
+
+            <!-- Group - Sticker Form -->
+            <form x-show="msgType === 'sticker'" x-transition action="{{ route('admin.communication.whatsapp.send-sticker') }}" method="POST">
+              @csrf
+              <input type="hidden" name="phone_number" :value="selectedGroup && (selectedGroup.id || selectedGroup.jid)">
+              @include('admin.communication.whatsapp.partials._url_field', ['name'=>'sticker_url', 'label'=>'Sticker URL (.webp)', 'placeholder'=>'https://.../sticker.webp', 'required'=>true, 'help'=>'Must be .webp, max 100KB, 512×512px'])
+              <button type="submit" class="px-5 py-2 rounded-lg bg-gradient-to-r from-pink-500 to-pink-600 text-white text-sm font-semibold transition-all shadow-lg shadow-pink-500/20">
+                <i class="fa-solid fa-face-smile mr-2"></i>Send Sticker to Group
+              </button>
+            </form>
+
+            <!-- Group - Contact Form -->
+            <form x-show="msgType === 'contact'" x-transition action="{{ route('admin.communication.whatsapp.send-contact') }}" method="POST">
+              @csrf
+              <input type="hidden" name="phone_number" :value="selectedGroup && (selectedGroup.id || selectedGroup.jid)">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Contact Full Name</label>
+                  <input type="text" name="contact_name" required placeholder="John Doe"
+                         class="w-full px-4 py-2.5 rounded-lg border border-primary-200 dark:border-dark-border bg-white dark:bg-dark-card text-primary-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all">
                 </div>
-                <button type="submit" class="px-5 py-2 rounded-lg bg-gradient-to-r from-rose-500 to-rose-600 text-white text-sm font-semibold transition-all shadow-lg shadow-rose-500/20">
-                  <i class="fa-solid fa-video mr-2"></i>Send Video to Group
-                </button>
-              </div>
-
-              <!-- Group - Document Form -->
-              <div x-show="msgType === 'document'" x-transition>
-                @include('admin.communication.whatsapp.partials._url_field', ['name'=>'document_url', 'label'=>'Document URL', 'placeholder'=>'https://.../report.pdf', 'required'=>true, 'help'=>'Public document URL'])
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">File Name</label>
-                    <input type="text" name="file_name" required placeholder="report.pdf"
-                           class="w-full px-4 py-2.5 rounded-lg border border-primary-200 dark:border-dark-border bg-white dark:bg-dark-card text-primary-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all">
-                  </div>
-                  <div>
-                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Caption <span class="text-gray-400 font-normal">(optional)</span></label>
-                    <input type="text" name="caption" placeholder="Document description..."
-                           class="w-full px-4 py-2.5 rounded-lg border border-primary-200 dark:border-dark-border bg-white dark:bg-dark-card text-primary-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all">
-                  </div>
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Contact Phone Number</label>
+                  <input type="text" name="contact_phone" required placeholder="+255711000000"
+                         class="w-full px-4 py-2.5 rounded-lg border border-primary-200 dark:border-dark-border bg-white dark:bg-dark-card text-primary-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all">
                 </div>
-                <button type="submit" class="px-5 py-2 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 text-white text-sm font-semibold transition-all shadow-lg shadow-amber-500/20">
-                  <i class="fa-solid fa-file-pdf mr-2"></i>Send Document to Group
-                </button>
               </div>
+              <button type="submit" class="px-5 py-2 rounded-lg bg-gradient-to-r from-cyan-500 to-cyan-600 text-white text-sm font-semibold transition-all shadow-lg shadow-cyan-500/20">
+                <i class="fa-solid fa-address-book mr-2"></i>Send Contact to Group
+              </button>
+            </form>
 
-              <!-- Group - Audio Form -->
-              <div x-show="msgType === 'audio'" x-transition>
-                @include('admin.communication.whatsapp.partials._url_field', ['name'=>'audio_url', 'label'=>'Audio URL', 'placeholder'=>'https://.../audio.mp3', 'required'=>true, 'help'=>'Public audio URL (MP3, OGG, AMR, max 16MB)'])
-                <button type="submit" class="px-5 py-2 rounded-lg bg-gradient-to-r from-violet-500 to-violet-600 text-white text-sm font-semibold transition-all shadow-lg shadow-violet-500/20">
-                  <i class="fa-solid fa-music mr-2"></i>Send Audio to Group
-                </button>
-              </div>
-
-              <!-- Group - Sticker Form -->
-              <div x-show="msgType === 'sticker'" x-transition>
-                @include('admin.communication.whatsapp.partials._url_field', ['name'=>'sticker_url', 'label'=>'Sticker URL (.webp)', 'placeholder'=>'https://.../sticker.webp', 'required'=>true, 'help'=>'Must be .webp, max 100KB, 512×512px'])
-                <button type="submit" class="px-5 py-2 rounded-lg bg-gradient-to-r from-pink-500 to-pink-600 text-white text-sm font-semibold transition-all shadow-lg shadow-pink-500/20">
-                  <i class="fa-solid fa-face-smile mr-2"></i>Send Sticker to Group
-                </button>
-              </div>
-
-              <!-- Group - Contact Form -->
-              <div x-show="msgType === 'contact'" x-transition>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Contact Full Name</label>
-                    <input type="text" name="contact_name" required placeholder="John Doe"
-                           class="w-full px-4 py-2.5 rounded-lg border border-primary-200 dark:border-dark-border bg-white dark:bg-dark-card text-primary-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all">
-                  </div>
-                  <div>
-                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Contact Phone Number</label>
-                    <input type="text" name="contact_phone" required placeholder="+255711000000"
-                           class="w-full px-4 py-2.5 rounded-lg border border-primary-200 dark:border-dark-border bg-white dark:bg-dark-card text-primary-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all">
-                  </div>
+            <!-- Group - Location Form -->
+            <form x-show="msgType === 'location'" x-transition action="{{ route('admin.communication.whatsapp.send-location') }}" method="POST">
+              @csrf
+              <input type="hidden" name="phone_number" :value="selectedGroup && (selectedGroup.id || selectedGroup.jid)">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Latitude</label>
+                  <input type="number" step="any" name="latitude" required placeholder="-6.7924"
+                         class="w-full px-4 py-2.5 rounded-lg border border-primary-200 dark:border-dark-border bg-white dark:bg-dark-card text-primary-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all">
                 </div>
-                <button type="submit" class="px-5 py-2 rounded-lg bg-gradient-to-r from-cyan-500 to-cyan-600 text-white text-sm font-semibold transition-all shadow-lg shadow-cyan-500/20">
-                  <i class="fa-solid fa-address-book mr-2"></i>Send Contact to Group
-                </button>
-              </div>
-
-              <!-- Group - Location Form -->
-              <div x-show="msgType === 'location'" x-transition>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Latitude</label>
-                    <input type="number" step="any" name="latitude" required placeholder="-6.7924"
-                           class="w-full px-4 py-2.5 rounded-lg border border-primary-200 dark:border-dark-border bg-white dark:bg-dark-card text-primary-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all">
-                  </div>
-                  <div>
-                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Longitude</label>
-                    <input type="number" step="any" name="longitude" required placeholder="39.2083"
-                           class="w-full px-4 py-2.5 rounded-lg border border-primary-200 dark:border-dark-border bg-white dark:bg-dark-card text-primary-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all">
-                  </div>
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Longitude</label>
+                  <input type="number" step="any" name="longitude" required placeholder="39.2083"
+                         class="w-full px-4 py-2.5 rounded-lg border border-primary-200 dark:border-dark-border bg-white dark:bg-dark-card text-primary-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all">
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Location Name <span class="text-gray-400 font-normal">(optional)</span></label>
-                    <input type="text" name="name" placeholder="Head Office"
-                           class="w-full px-4 py-2.5 rounded-lg border border-primary-200 dark:border-dark-border bg-white dark:bg-dark-card text-primary-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all">
-                  </div>
-                  <div>
-                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Address <span class="text-gray-400 font-normal">(optional)</span></label>
-                    <input type="text" name="address" placeholder="Samora Avenue, Dar es Salaam"
-                           class="w-full px-4 py-2.5 rounded-lg border border-primary-200 dark:border-dark-border bg-white dark:bg-dark-card text-primary-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all">
-                  </div>
-                </div>
-                <button type="submit" class="px-5 py-2 rounded-lg bg-gradient-to-r from-orange-500 to-orange-600 text-white text-sm font-semibold transition-all shadow-lg shadow-orange-500/20">
-                  <i class="fa-solid fa-location-dot mr-2"></i>Send Location to Group
-                </button>
               </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Location Name <span class="text-gray-400 font-normal">(optional)</span></label>
+                  <input type="text" name="name" placeholder="Head Office"
+                         class="w-full px-4 py-2.5 rounded-lg border border-primary-200 dark:border-dark-border bg-white dark:bg-dark-card text-primary-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all">
+                </div>
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Address <span class="text-gray-400 font-normal">(optional)</span></label>
+                  <input type="text" name="address" placeholder="Samora Avenue, Dar es Salaam"
+                         class="w-full px-4 py-2.5 rounded-lg border border-primary-200 dark:border-dark-border bg-white dark:bg-dark-card text-primary-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all">
+                </div>
+              </div>
+              <button type="submit" class="px-5 py-2 rounded-lg bg-gradient-to-r from-orange-500 to-orange-600 text-white text-sm font-semibold transition-all shadow-lg shadow-orange-500/20">
+                <i class="fa-solid fa-location-dot mr-2"></i>Send Location to Group
+              </button>
             </form>
           </div>
         </div>
@@ -756,3 +824,129 @@
 
 </div>
 @endsection
+
+@push('scripts')
+<script>
+(function () {
+  function defineWpComm() {
+    Alpine.data('wpComm', function () {
+      return {
+        channelType: 'whatsapp',
+        messageScope: 'single',
+        msgType: 'text',
+        uploadedUrl: @json(session('uploaded_url', '')),
+        groups: [],
+        groupsLoading: false,
+        groupsError: null,
+        selectedGroup: null,
+        addParticipantsText: '',
+        addParticipantsLoading: false,
+        addParticipantsResult: null,
+        participantsPlaceholder:
+          "Enter phone numbers — one per line, or separated by comma/semicolon/pipe.\n" +
+          "Examples:\n" +
+          "255711000001\n" +
+          "0712000002, 0713000003\n" +
+          "+255 714 000 004\n" +
+          "255715000005; 255716000006",
+        isSelectedGroup: function (group) {
+          if (!this.selectedGroup) return false;
+          if (this.selectedGroup.id && group.id && this.selectedGroup.id === group.id) return true;
+          if (this.selectedGroup.jid && group.jid && this.selectedGroup.jid === group.jid) return true;
+          return false;
+        },
+        groupKey: function (group) {
+          if (group.id) return group.id;
+          if (group.jid) return group.jid;
+          if (group.name) {
+            try { return btoa(unescape(encodeURIComponent(group.name))); }
+            catch (_) { return String(group.name).replace(/\W/g, '_'); }
+          }
+          return '';
+        },
+        loadGroups: function () {
+          var self = this;
+          self.groupsLoading = true;
+          self.groupsError = null;
+          fetch(@json(route('admin.communication.whatsapp.groups')))
+            .then(function (r) {
+              if (!r.ok) throw new Error('HTTP ' + r.status);
+              return r.json();
+            })
+            .then(function (data) {
+              self.groups = data.groups || [];
+              if (!data.success && data.message) {
+                self.groupsError = data.message;
+              } else if (self.groups.length === 0 && data.message) {
+                self.groupsError = data.message;
+              }
+              if (data.session_connected === false && self.groups.length === 0) {
+                self.groupsError = 'WhatsApp session is not connected. Please reconnect your WhatsApp session before loading groups.';
+              }
+              self.groupsLoading = false;
+            })
+            .catch(function (err) {
+              console.error('Failed to load groups:', err);
+              self.groupsError = 'Failed to load groups: ' + (err.message || 'Network error. Please try again.');
+              self.groupsLoading = false;
+            });
+        },
+        submitAddParticipants: function (event) {
+          var self = this;
+          self.addParticipantsLoading = true;
+          self.addParticipantsResult = null;
+          var form = event.target;
+          var formData = new FormData(form);
+          fetch(form.action, {
+            method: form.method,
+            body: formData,
+            headers: {
+              'Accept': 'application/json',
+              'X-Requested-With': 'XMLHttpRequest'
+            }
+          })
+            .then(function (r) {
+              var data = null;
+              try { data = r.json(); } catch (_) { data = Promise.resolve(null); }
+              return Promise.resolve(data).then(function (parsed) {
+                if (!r.ok && !parsed) throw new Error('HTTP ' + r.status);
+                return parsed || { success: r.ok, message: r.statusText };
+              });
+            })
+            .then(function (data) {
+              self.addParticipantsResult = {
+                ok: !!data.success,
+                message: data.message || (data.success ? 'Participants added successfully' : 'Failed to add participants'),
+                data: data
+              };
+              if (data.success) {
+                self.addParticipantsText = '';
+                try { form.reset(); } catch (_) {}
+              }
+              self.addParticipantsLoading = false;
+            })
+            .catch(function (err) {
+              console.error('Failed to add participants:', err);
+              self.addParticipantsResult = { ok: false, message: err.message || 'Network error' };
+              self.addParticipantsLoading = false;
+            });
+        }
+      };
+    });
+  }
+
+  if (window.Alpine && typeof Alpine.data === 'function') {
+    defineWpComm();
+  } else {
+    document.addEventListener('alpine:init', defineWpComm, { once: true });
+    // Safety net: if event was missed because Alpine already booted, register on next tick anyway.
+    window.setTimeout(function () {
+      if (window.Alpine && typeof Alpine.data === 'function') {
+        try { Alpine.data('wpComm'); }
+        catch (_) { defineWpComm(); if (Alpine.initTree) { Alpine.initTree(document.querySelector('[x-data="wpComm()"]')); } }
+      }
+    }, 0);
+  }
+})();
+</script>
+@endpush
