@@ -268,6 +268,8 @@ class MemberSeeder extends Seeder
             ['member_number' => 'ASC147', 'full_name' => 'Penina Charles', 'email' => 'peninacharles667@gmail.com', 'gender' => 'F', 'phone' => '255762230125', 'member_type' => 'Associate', 'registration_fee' => 57000.00, 'status' => 'Active', 'residential_address' => 'Chunya makongolosi', 'bank_name' => 'Mpesa', 'account_number' => '762230125', 'national_id' => '19980914355050000113', 'date_of_birth' => '1998-09-14', 'marital_status' => 'Married', 'registration_date' => '2026-08-06'],
         ];
 
+        $usedEmails = [];
+
         foreach ($membersData as $memberData) {
             // Set default status if null
             if (!isset($memberData['status']) || $memberData['status'] === null) {
@@ -277,19 +279,22 @@ class MemberSeeder extends Seeder
             // Create member record
             $member = Member::create($memberData);
 
-            // Create corresponding user record with default password
-            User::create([
-                'name' => $memberData['full_name'],
-                'email' => $memberData['email'],
-                'password' => Hash::make('password'),
-                'role' => 'member',
-                'member_number' => $memberData['member_number'],
-                'phone' => $memberData['phone'] ?? null,
-                'gender' => $memberData['gender'] ?? null,
-                'address' => $memberData['residential_address'] ?? null,
-                'status' => 'active',
-                'registration_date' => $memberData['registration_date'] ?? null,
-            ]);
+            // Create corresponding user record with default password (skip duplicate emails)
+            if (!in_array($memberData['email'], $usedEmails)) {
+                User::create([
+                    'name' => $memberData['full_name'],
+                    'email' => $memberData['email'],
+                    'password' => Hash::make('password'),
+                    'role' => 'member',
+                    'member_number' => $memberData['member_number'],
+                    'phone' => $memberData['phone'] ?? null,
+                    'gender' => $memberData['gender'] ?? null,
+                    'address' => $memberData['residential_address'] ?? null,
+                    'status' => 'active',
+                    'registration_date' => $memberData['registration_date'] ?? null,
+                ]);
+                $usedEmails[] = $memberData['email'];
+            }
         }
 
         // Create admin user
