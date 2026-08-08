@@ -298,6 +298,10 @@ class LoanPaymentSeeder extends Seeder
         ];
 
         foreach ($paymentsData as $paymentData) {
+            // Skip records with null loan_id
+            if ($paymentData['loan_id'] === null) {
+                continue;
+            }
             LoanPayment::create($paymentData);
         }
 

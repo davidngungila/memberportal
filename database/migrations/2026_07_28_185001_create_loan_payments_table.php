@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('loan_payments', function (Blueprint $table) {
             $table->id();
-            $table->string('loan_id');
+            $table->string('loan_id')->nullable();
             $table->unsignedBigInteger('user_id')->nullable();
             $table->string('customer_id')->nullable();
             $table->decimal('payment_amount', 15, 2);

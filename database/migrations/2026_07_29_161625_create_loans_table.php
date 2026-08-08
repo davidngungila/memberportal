@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('member_number')->nullable();
             $table->string('loan_number')->unique();
             $table->decimal('principal_amount', 15, 2);
-            $table->decimal('interest_rate', 5, 2)->default(0);
+            $table->decimal('interest_rate', 15, 2)->default(0);
             $table->integer('term_months');
             $table->date('application_date');
             $table->date('approval_date')->nullable();
