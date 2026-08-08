@@ -34,6 +34,13 @@ class TransactionSeeder extends Seeder
                 'reference_no' => 'Opening balance',
                 'amount' => 23794.00,
             ],
+            [
+                'date' => '2026-03-01',
+                'membercode' => 'ASC108',
+                'transaction_type' => 'Opening Balance',
+                'reference_no' => 'Opening balance',
+                'amount' => 754000.00,
+            ],
             // March 2026 Transactions
             [
                 'date' => '2026-03-10',
