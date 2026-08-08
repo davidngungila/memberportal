@@ -800,6 +800,27 @@ class LoanSeeder extends Seeder
             // Row 38
             [
                 'loan_number' => 'LN038',
+                'member_number' => 'ASC108',
+                'loan_product_id' => null,
+                'principal_amount' => 3887984.85,
+                'interest_rate' => 231983.10,
+                'term_months' => 22,
+                'application_date' => '2023-08-26',
+                'approval_date' => '2023-08-26',
+                'disbursement_date' => '2023-08-26',
+                'maturity_date' => '2025-06-26',
+                'monthly_payment' => 231983.10,
+                'total_amount_due' => 5103628.20,
+                'amount_paid' => 2319831.00,
+                'balance' => 2783797.20,
+                'status' => 'active',
+                'purpose' => 'business',
+                'guarantor' => null,
+                'notes' => 'Business Loan - New',
+            ],
+            // Row 39
+            [
+                'loan_number' => 'LN039',
                 'member_number' => 'ASC61',
                 'loan_product_id' => null,
                 'principal_amount' => 3887984.85,
