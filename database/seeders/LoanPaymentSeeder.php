@@ -10,6 +10,9 @@ class LoanPaymentSeeder extends Seeder
 {
     public function run(): void
     {
+        // Disable foreign key constraints
+        DB::statement('SET FOREIGN_KEY_CHECKS=0');
+
         DB::table('loan_payments')->truncate();
 
         $paymentsData = [
@@ -297,6 +300,9 @@ class LoanPaymentSeeder extends Seeder
         foreach ($paymentsData as $paymentData) {
             LoanPayment::create($paymentData);
         }
+
+        // Re-enable foreign key constraints
+        DB::statement('SET FOREIGN_KEY_CHECKS=1');
 
         $this->command->info('Loan payment seeder completed with sample data. Add remaining records as needed.');
     }

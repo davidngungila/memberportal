@@ -13,6 +13,9 @@ class LoanSeeder extends Seeder
      */
     public function run(): void
     {
+        // Disable foreign key constraints
+        DB::statement('SET FOREIGN_KEY_CHECKS=0');
+
         // Clear existing loans
         DB::table('loans')->truncate();
 
@@ -1870,6 +1873,9 @@ class LoanSeeder extends Seeder
         foreach ($loansData as $loanData) {
             Loan::create($loanData);
         }
+
+        // Re-enable foreign key constraints
+        DB::statement('SET FOREIGN_KEY_CHECKS=1');
 
         $this->command->info('Loan seeder completed successfully. ' . count($loansData) . ' loans seeded.');
     }
