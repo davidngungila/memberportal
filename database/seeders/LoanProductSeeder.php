@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\LoanProduct;
+use Illuminate\Support\Facades\DB;
 
 class LoanProductSeeder extends Seeder
 {
@@ -12,6 +13,9 @@ class LoanProductSeeder extends Seeder
      */
     public function run(): void
     {
+        DB::statement('SET FOREIGN_KEY_CHECKS=0');
+        DB::table('loan_products')->truncate();
+
         $loanProducts = [
             [
                 'name' => 'Normal Loan',
@@ -152,10 +156,10 @@ class LoanProductSeeder extends Seeder
         ];
 
         foreach ($loanProducts as $product) {
-            LoanProduct::updateOrCreate(
-                ['code' => $product['code']],
-                $product
-            );
+            LoanProduct::create($product);
         }
+
+        DB::statement('SET FOREIGN_KEY_CHECKS=1');
+        $this->command->info('Loan products seeded successfully.');
     }
 }

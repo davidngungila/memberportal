@@ -839,9 +839,9 @@ class LoanSeeder extends Seeder
                 'guarantor' => null,
                 'notes' => 'Business Loan - New',
             ],
-            // Row 39
+            // Row 40
             [
-                'loan_number' => 'LN039',
+                'loan_number' => 'LN040',
                 'member_number' => 'ASC61',
                 'loan_product_id' => null,
                 'principal_amount' => 935168.01,
@@ -860,9 +860,9 @@ class LoanSeeder extends Seeder
                 'guarantor' => null,
                 'notes' => 'Business Loan - Restructured',
             ],
-            // Row 40
+            // Row 41
             [
-                'loan_number' => 'LN040',
+                'loan_number' => 'LN041',
                 'member_number' => 'ASC1',
                 'loan_product_id' => null,
                 'principal_amount' => 1314642.42,
