@@ -19,6 +19,12 @@ class LoanSeeder extends Seeder
         // Clear existing loans
         DB::table('loans')->truncate();
 
+        // Get user IDs for member numbers
+        $memberToUserMap = DB::table('users')
+            ->whereNotNull('member_number')
+            ->pluck('id', 'member_number')
+            ->toArray();
+
         $loansData = [
             // Row 1
             [
@@ -1892,6 +1898,10 @@ class LoanSeeder extends Seeder
         ];
 
         foreach ($loansData as $loanData) {
+            // Add user_id if member_number exists in the map
+            if (isset($loanData['member_number']) && isset($memberToUserMap[$loanData['member_number']])) {
+                $loanData['user_id'] = $memberToUserMap[$loanData['member_number']];
+            }
             Loan::create($loanData);
         }
 
