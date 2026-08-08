@@ -509,6 +509,15 @@ Route::prefix('member')->middleware(['auth', 'role:member', 'member.isolation'])
     Route::get('/profile/edit', [MemberProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [MemberProfileController::class, 'update'])->name('profile.update');
 
+    Route::prefix('certificates')->name('certificates.')->group(function () {
+        Route::get('/', [CertificateController::class, 'index'])->name('index');
+        Route::get('/membership-preview', [CertificateController::class, 'getMembershipCertificate'])->name('membership-preview');
+        Route::get('/loan/{id}', [CertificateController::class, 'showLoanCertificate'])->name('show-loan');
+        Route::get('/loan/{id}/print', [CertificateController::class, 'printLoanCertificate'])->name('print-loan');
+        Route::get('/share/{id}', [CertificateController::class, 'showShareCertificate'])->name('show-share');
+        Route::get('/share/{id}/print', [CertificateController::class, 'printShareCertificate'])->name('print-share');
+    });
+
     Route::get('/loans', [MemberLoanController::class, 'index'])->name('loans.index');
     Route::get('/loans/create', [MemberLoanController::class, 'create'])->name('loans.create');
     Route::post('/loans/store-basic-info', [MemberLoanController::class, 'storeBasicInfo'])->name('loans.store-basic-info');
