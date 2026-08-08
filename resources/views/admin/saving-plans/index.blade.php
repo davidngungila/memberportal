@@ -55,7 +55,6 @@
         <thead>
           <tr>
             <th class="w-12">#</th>
-            <th>Name</th>
             <th>Member</th>
             <th>Period</th>
             <th>Goal</th>
@@ -69,9 +68,6 @@
           @forelse($savingPlans as $index => $savingPlan)
             <tr>
               <td>{{ ($savingPlans->currentPage() - 1) * $savingPlans->perPage() + $index + 1 }}</td>
-              <td>
-                <span class="font-semibold text-primary-600">{{ $savingPlan->name }}</span>
-              </td>
               <td>
                 <div class="text-sm">
                   <p class="font-semibold text-primary-900 dark:text-white">{{ $savingPlan->member ? $savingPlan->member->full_name : ($savingPlan->user ? $savingPlan->user->name : '—') }}</p>
@@ -118,7 +114,7 @@
             </tr>
           @empty
             <tr>
-              <td colspan="9" class="text-center py-12 text-gray-500">
+              <td colspan="8" class="text-center py-12 text-gray-500">
                 <i class="fa-solid fa-inbox text-4xl mb-3 block"></i>
                 <p>No saving plans found</p>
               </td>

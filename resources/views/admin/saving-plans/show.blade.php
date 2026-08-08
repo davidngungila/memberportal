@@ -36,7 +36,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div class="p-4 rounded-xl bg-primary-50 dark:bg-primary-900/20 border border-primary-100 dark:border-primary-800/50">
             <p class="text-xs text-primary-600 dark:text-primary-400 mb-1">Member</p>
-            <p class="text-sm font-bold text-primary-900 dark:text-white">{{ $savingPlan->user ? $savingPlan->user->name : 'Unknown' }}</p>
+            <p class="text-sm font-bold text-primary-900 dark:text-white">{{ $savingPlan->member ? $savingPlan->member->full_name : ($savingPlan->user ? $savingPlan->user->name : 'Unknown') }}</p>
             <p class="text-xs text-primary-500 dark:text-primary-400">{{ $savingPlan->member_number }}</p>
           </div>
           <div class="p-4 rounded-xl bg-primary-50 dark:bg-primary-900/20 border border-primary-100 dark:border-primary-800/50">

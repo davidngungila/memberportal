@@ -110,7 +110,7 @@ class SavingPlanController extends Controller
     public function show(string $encryptedId)
     {
         $id = $this->encryptedIdService->decrypt($encryptedId);
-        $savingPlan = SavingPlan::with('user')->findOrFail($id);
+        $savingPlan = SavingPlan::with('user', 'member')->findOrFail($id);
         return view('admin.saving-plans.show', compact('savingPlan'));
     }
 
