@@ -2133,6 +2133,34 @@ class TransactionSeeder extends Seeder
                 'reference_no' => 'Admin payment-Feb 2026',
                 'amount' => 124361.00,
             ],
+            [
+                'date' => '2026-03-07',
+                'membercode' => 'PRM2',
+                'transaction_type' => 'RDA-Deposit',
+                'reference_no' => 'Admin payment-Feb 2026',
+                'amount' => 197250.00,
+            ],
+            [
+                'date' => '2026-03-07',
+                'membercode' => 'ASC9',
+                'transaction_type' => 'Flexi-Deposit',
+                'reference_no' => 'Admin payment-Feb 2026',
+                'amount' => 21000.00,
+            ],
+            [
+                'date' => '2026-03-10',
+                'membercode' => 'ASC126',
+                'transaction_type' => 'Flexi-Withdrawal',
+                'reference_no' => 'IB15196210032610',
+                'amount' => -2550000.00,
+            ],
+            [
+                'date' => '2026-03-07',
+                'membercode' => 'SCH70',
+                'transaction_type' => 'Flexi-Deposit',
+                'reference_no' => 'charity support',
+                'amount' => 25000.00,
+            ],
         ];
 
         foreach ($transactionsData as $transaction) {
