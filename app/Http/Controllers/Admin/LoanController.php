@@ -364,6 +364,7 @@ class LoanController extends Controller
                     'method' => $payment->payment_method ?? 'N/A',
                     'amount' => (float) $payment->payment_amount,
                     'principal' => (float) $payment->principal_amount ?? 0,
+                    'balance_after' => null, // Balance after not stored in loan_payments table
                 ];
             })->toArray();
         } elseif ($paidAmount > 0 && !empty($repaymentSchedule)) {
