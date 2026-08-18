@@ -24,7 +24,7 @@ class PersonalDetailsController extends Controller
             return redirect()->route('register.create');
         }
 
-        $personalDetail = $application->personalDetail;
+        $personalDetail = $application->personalDetail ?? new \App\Models\ApplicationPersonalDetail();
 
         return view('registration.personal-details', [
             'application' => $application,
