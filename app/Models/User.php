@@ -95,6 +95,45 @@ class User extends Authenticatable
         return $this->hasMany(ShareCertificate::class);
     }
 
+    public function member()
+    {
+        return $this->hasOne(Member::class);
+    }
+
+    public function membershipApplications(): HasMany
+    {
+        return $this->hasMany(MembershipApplication::class);
+    }
+
+    public function activeApplication()
+    {
+        return $this->hasOne(MembershipApplication::class)
+            ->whereIn('application_status', ['draft', 'in_progress', 'submitted', 'under_review', 'correction_required'])
+            ->latest();
+    }
+
+    public function latestApplication()
+    {
+        return $this->hasOne(MembershipApplication::class)->latest();
+    }
+
+    public function verificationCode()
+    {
+        return $this->hasOne(VerificationCode::class)->latest();
+    }
+
+    public function isApprovedMember(): bool
+    {
+        return $this->member !== null && $this->member->status === 'Active';
+    }
+
+    public function hasActiveApplication(): bool
+    {
+        return $this->membershipApplications()
+            ->whereIn('application_status', ['draft', 'in_progress', 'submitted', 'under_review', 'correction_required'])
+            ->exists();
+    }
+
     public function hasRole($role): bool
     {
         if (is_string($role)) {

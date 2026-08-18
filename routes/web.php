@@ -58,13 +58,33 @@ use App\Http\Controllers\Member\StatementController as MemberStatementController
 use App\Http\Controllers\Member\NotificationController as MemberNotificationController;
 use App\Http\Controllers\Member\SavingPlanController as MemberSavingPlanController;
 use App\Http\Controllers\Member\CertificateController as MemberCertificateController;
+use App\Http\Controllers\Registration\AccountController as RegistrationAccountController;
+use App\Http\Controllers\Registration\DashboardController as RegistrationDashboardController;
+use App\Http\Controllers\Registration\MembershipTypeController as RegistrationMembershipTypeController;
+use App\Http\Controllers\Registration\PaymentController as RegistrationPaymentController;
+use App\Http\Controllers\Registration\PersonalDetailsController as RegistrationPersonalDetailsController;
+use App\Http\Controllers\Registration\ProfileController as RegistrationProfileController;
+use App\Http\Controllers\Registration\BankDetailsController as RegistrationBankDetailsController;
+use App\Http\Controllers\Registration\NextOfKinController as RegistrationNextOfKinController;
+use App\Http\Controllers\Registration\ReferralController as RegistrationReferralController;
+use App\Http\Controllers\Registration\SavingPlanController as RegistrationSavingPlanController;
+use App\Http\Controllers\Registration\ReviewController as RegistrationReviewController;
+use App\Http\Controllers\Registration\SubmitController as RegistrationSubmitController;
+use App\Http\Controllers\Admin\MembershipApplicationController as AdminMembershipApplicationController;
 
 Route::get('/', function () {
     if (auth()->check()) {
-        if (auth()->user()->isAdmin()) {
+        $user = auth()->user();
+        if ($user->isAdmin()) {
             return redirect()->route('admin.dashboard');
         }
-        return redirect()->route('member.dashboard');
+        if ($user->isApprovedMember()) {
+            return redirect()->route('member.dashboard');
+        }
+        if ($user->hasActiveApplication()) {
+            return redirect()->route('register.dashboard');
+        }
+        return redirect()->route('register.create');
     }
     return redirect()->route('login');
 });
@@ -552,3 +572,66 @@ Route::prefix('member')->middleware(['auth', 'role:member', 'member.isolation'])
 Route::get('/verify-certificate/{code}', function($code) {
     return view('certificates.verify', compact('code'));
 })->name('verify.certificate');
+
+// Registration Routes
+Route::prefix('register')->name('register.')->group(function () {
+    // Account creation (unauthenticated)
+    Route::get('/', [RegistrationAccountController::class, 'showCreateForm'])->name('create');
+    Route::post('/', [RegistrationAccountController::class, 'createAccount'])->name('store');
+
+    // Verification & password (authenticated, pre-registration)
+    Route::middleware('auth')->group(function () {
+        Route::get('/verify', [RegistrationAccountController::class, 'showVerificationForm'])->name('verify');
+        Route::post('/verify', [RegistrationAccountController::class, 'verify'])->name('verify.store');
+        Route::post('/resend', [RegistrationAccountController::class, 'resendCodes'])->name('resend');
+        Route::get('/password', [RegistrationAccountController::class, 'showPasswordForm'])->name('password');
+        Route::post('/password', [RegistrationAccountController::class, 'createPassword'])->name('password.store');
+    });
+});
+
+// Registration Application Routes (authenticated + stage gating)
+Route::prefix('application')->name('register.')->middleware(['auth', 'registration.stage'])->group(function () {
+    Route::get('/', [RegistrationDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/status', [RegistrationDashboardController::class, 'status'])->name('status');
+
+    Route::get('/membership-type', [RegistrationMembershipTypeController::class, 'showForm'])->name('membership-type');
+    Route::post('/membership-type', [RegistrationMembershipTypeController::class, 'select'])->name('membership-type.store');
+
+    Route::get('/payment', [RegistrationPaymentController::class, 'showForm'])->name('payment');
+    Route::post('/payment', [RegistrationPaymentController::class, 'process'])->name('payment.process');
+    Route::get('/payment/{paymentId}/pending', [RegistrationPaymentController::class, 'pending'])->name('payment.pending');
+    Route::post('/payment/{paymentId}/confirm', [RegistrationPaymentController::class, 'confirm'])->name('payment.confirm');
+    Route::post('/payment/callback', [RegistrationPaymentController::class, 'callback'])->name('payment.callback');
+
+    Route::get('/personal-details', [RegistrationPersonalDetailsController::class, 'showForm'])->name('personal-details');
+    Route::post('/personal-details', [RegistrationPersonalDetailsController::class, 'save'])->name('personal-details.store');
+
+    Route::get('/profile-photo', [RegistrationProfileController::class, 'showForm'])->name('profile-photo');
+    Route::post('/profile-photo', [RegistrationProfileController::class, 'upload'])->name('profile-photo.upload');
+
+    Route::get('/bank-details', [RegistrationBankDetailsController::class, 'showForm'])->name('bank-details');
+    Route::post('/bank-details', [RegistrationBankDetailsController::class, 'save'])->name('bank-details.store');
+
+    Route::get('/next-of-kin', [RegistrationNextOfKinController::class, 'showForm'])->name('next-of-kin');
+    Route::post('/next-of-kin', [RegistrationNextOfKinController::class, 'save'])->name('next-of-kin.store');
+
+    Route::get('/referral', [RegistrationReferralController::class, 'showForm'])->name('referral');
+    Route::post('/referral', [RegistrationReferralController::class, 'save'])->name('referral.store');
+    Route::post('/validate-membercode', [RegistrationReferralController::class, 'validateMembercode'])->name('validate-membercode');
+
+    Route::get('/saving-plan', [RegistrationSavingPlanController::class, 'showForm'])->name('saving-plan');
+    Route::post('/saving-plan', [RegistrationSavingPlanController::class, 'save'])->name('saving-plan.store');
+
+    Route::get('/review', [RegistrationReviewController::class, 'index'])->name('review');
+
+    Route::get('/submit', [RegistrationSubmitController::class, 'showForm'])->name('submit');
+    Route::post('/submit', [RegistrationSubmitController::class, 'submit'])->name('submit.store');
+});
+
+// Admin Membership Application Routes
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->group(function () {
+    Route::resource('membership-applications', AdminMembershipApplicationController::class)->only(['index', 'show']);
+    Route::post('membership-applications/{application}/approve', [AdminMembershipApplicationController::class, 'approve'])->name('membership-applications.approve');
+    Route::post('membership-applications/{application}/reject', [AdminMembershipApplicationController::class, 'reject'])->name('membership-applications.reject');
+    Route::post('membership-applications/{application}/correction', [AdminMembershipApplicationController::class, 'requestCorrection'])->name('membership-applications.request-correction');
+});

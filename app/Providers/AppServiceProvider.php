@@ -17,6 +17,7 @@ use App\Repositories\GoogleSheetRepository;
 use App\Services\EncryptedIdService;
 use App\Services\MailConfigService;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Blade;
 
@@ -54,6 +55,25 @@ class AppServiceProvider extends ServiceProvider
         // Blade directive to encrypt IDs
         Blade::directive('encryptId', function ($expression) {
             return "<?php echo app(\App\Services\EncryptedIdService::class)->encrypt({$expression}); ?>";
+        });
+
+        View::composer('layouts.registration', function ($view) {
+            $user = auth()->user();
+            $helper = app(\App\Services\Registration\RegistrationViewHelper::class);
+
+            if ($user) {
+                $application = $user->membershipApplications()
+                    ->whereIn('application_status', ['draft', 'in_progress', 'correction_required'])
+                    ->latest()
+                    ->first();
+
+                $helper->setApplication($application);
+            }
+
+            $progress = $helper->getProgress();
+            $application = $helper->getApplication();
+
+            $view->with(compact('application', 'progress'));
         });
     }
 }

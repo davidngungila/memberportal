@@ -19,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission' => \App\Http\Middleware\PermissionMiddleware::class,
             'member.isolation' => \App\Http\Middleware\EnsureMemberDataIsolation::class,
             'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
+            'registration.stage' => \App\Http\Middleware\EnsureRegistrationStage::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

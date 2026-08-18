@@ -3,16 +3,26 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Member extends Model
 {
     protected $fillable = [
         'member_number',
+        'membercode',
+        'user_id',
+        'membership_type_id',
         'full_name',
+        'first_name',
+        'middle_name',
+        'last_name',
         'gender',
         'phone',
         'email',
         'status',
+        'registration_status',
+        'joined_at',
         'registration_date',
         'date_of_birth',
         'national_id',
@@ -34,16 +44,86 @@ class Member extends Model
         'registration_fee',
         'notes',
         'photo',
+        'profile_photo',
     ];
 
     protected $casts = [
         'registration_date' => 'date',
         'date_of_birth' => 'date',
+        'joined_at' => 'datetime',
         'registration_fee' => 'decimal:2',
     ];
 
-    public function loans()
+    public function user(): BelongsTo
     {
-        return $this->hasMany(Loan::class, 'member_number', 'member_number');
+        return $this->belongsTo(User::class);
+    }
+
+    public function membershipType(): BelongsTo
+    {
+        return $this->belongsTo(MemberType::class, 'membership_type_id');
+    }
+
+    public function loans(): HasMany
+    {
+        return $this->hasMany(Loan::class, 'membercode', 'membercode');
+    }
+
+    public function savings(): HasMany
+    {
+        return $this->hasMany(SavingPlan::class, 'membercode', 'membercode');
+    }
+
+    public function transactions(): HasMany
+    {
+        return $this->hasMany(Transaction::class, 'membercode', 'membercode');
+    }
+
+    public function deposits(): HasMany
+    {
+        return $this->hasMany(Deposit::class, 'membercode', 'membercode');
+    }
+
+    public function bankAccounts(): HasMany
+    {
+        return $this->hasMany(MemberBankAccount::class, 'membercode', 'membercode');
+    }
+
+    public function nextOfKin(): HasMany
+    {
+        return $this->hasMany(MemberNextOfKin::class, 'membercode', 'membercode');
+    }
+
+    public function savingBalances(): HasMany
+    {
+        return $this->hasMany(SavingBalance::class, 'membercode', 'membercode');
+    }
+
+    public function investments(): HasMany
+    {
+        return $this->hasMany(Investment::class, 'membercode', 'membercode');
+    }
+
+    public function applications(): HasMany
+    {
+        return $this->hasMany(MembershipApplication::class, 'membercode', 'membercode');
+    }
+
+    public function scopeByMembercode($query, string $membercode)
+    {
+        return $query->where('membercode', $membercode);
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('status', 'Active');
+    }
+
+    public function getDisplayNameAttribute(): string
+    {
+        if ($this->first_name && $this->last_name) {
+            return trim($this->first_name . ' ' . ($this->middle_name ?? '') . ' ' . $this->last_name);
+        }
+        return $this->full_name ?? 'Unknown';
     }
 }

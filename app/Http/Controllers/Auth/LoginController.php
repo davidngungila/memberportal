@@ -50,6 +50,12 @@ class LoginController extends Controller
                 if ($user->isAdmin()) {
                     return redirect('/admin/dashboard');
                 }
+                if ($user->isApprovedMember()) {
+                    return redirect('/member/dashboard');
+                }
+                if ($user->hasActiveApplication()) {
+                    return redirect()->route('register.dashboard');
+                }
                 return redirect('/member/dashboard');
             }
             return $intended;
