@@ -4,6 +4,7 @@ namespace App\Services\Registration;
 
 use App\Models\User;
 use App\Models\VerificationCode;
+use App\Services\MailConfigService;
 use App\Services\SmsService;
 use Illuminate\Support\Facades\Mail;
 
@@ -11,6 +12,7 @@ class VerificationService
 {
     public function __construct(
         protected SmsService $smsService,
+        protected MailConfigService $mailConfigService,
     ) {}
 
     public function sendVerificationCodes(User $user, string $email, string $phone): VerificationCode
@@ -96,6 +98,8 @@ class VerificationService
     public function sendEmailCode(string $email, string $code): void
     {
         try {
+            $this->mailConfigService->configureFromDatabase();
+
             Mail::raw("Your verification code is: {$code}\n\nThis code expires in 10 minutes.", function ($message) use ($email, $code) {
                 $message->to($email)
                     ->subject('Email Verification Code')
