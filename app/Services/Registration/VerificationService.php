@@ -93,7 +93,7 @@ class VerificationService
         return ['success' => true, 'message' => 'Verification codes resent.'];
     }
 
-    protected function sendEmailCode(string $email, string $code): void
+    public function sendEmailCode(string $email, string $code): void
     {
         try {
             Mail::raw("Your verification code is: {$code}\n\nThis code expires in 10 minutes.", function ($message) use ($email, $code) {
@@ -109,7 +109,7 @@ class VerificationService
         }
     }
 
-    protected function sendPhoneCode(string $phone, string $code): void
+    public function sendPhoneCode(string $phone, string $code): void
     {
         try {
             $this->smsService->send($phone, "Your verification code is: {$code}. It expires in 10 minutes.");
