@@ -155,20 +155,6 @@
 
     <div class="flex-1 lg:ml-72 xl:lg:ml-80 pt-16 lg:pt-0">
         <div class="p-4 md:p-6 lg:p-8">
-            @if(session('success'))
-                <div class="mb-4 p-4 rounded-xl bg-primary-50 border border-primary-200 text-primary-800 text-sm flex items-center gap-3 animate-fade-in">
-                    <i class="fa-solid fa-check-circle text-primary-500"></i>
-                    {{ session('success') }}
-                </div>
-            @endif
-
-            @if(session('error'))
-                <div class="mb-4 p-4 rounded-xl bg-red-50 border border-red-200 text-red-800 text-sm flex items-center gap-3 animate-fade-in">
-                    <i class="fa-solid fa-exclamation-circle text-red-500"></i>
-                    {{ session('error') }}
-                </div>
-            @endif
-
             @if($errors->any())
                 <div class="mb-4 p-4 rounded-xl bg-red-50 border border-red-200 text-red-800 text-sm animate-fade-in">
                     <div class="flex items-center gap-2 mb-2">

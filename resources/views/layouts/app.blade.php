@@ -11,6 +11,8 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css"/>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
   tailwind.config = {
@@ -273,6 +275,59 @@ body { color: #064e3b; background: #f0fdf4; }
 </script>
 
 @yield('layout_content')
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    @if(session('success'))
+        Swal.fire({
+            icon: 'success',
+            title: 'Success',
+            text: {!! json_encode(session('success')) !!},
+            confirmButtonColor: '#059669',
+            confirmButtonText: 'OK',
+            timer: 5000,
+            timerProgressBar: true,
+        });
+    @endif
+    @if(session('error'))
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: {!! json_encode(session('error')) !!},
+            confirmButtonColor: '#059669',
+            confirmButtonText: 'OK',
+        });
+    @endif
+    @if(session('info'))
+        Swal.fire({
+            icon: 'info',
+            title: 'Info',
+            text: {!! json_encode(session('info')) !!},
+            confirmButtonColor: '#059669',
+            confirmButtonText: 'OK',
+        });
+    @endif
+    @if(session('warning'))
+        Swal.fire({
+            icon: 'warning',
+            title: 'Warning',
+            text: {!! json_encode(session('warning')) !!},
+            confirmButtonColor: '#059669',
+            confirmButtonText: 'OK',
+        });
+    @endif
+    @if($errors->any())
+        Swal.fire({
+            icon: 'error',
+            title: 'Validation Error',
+            html: '<ul style="text-align:left;font-size:13px;margin:0;padding-left:16px;">@foreach($errors->all() as $error)<li>{!! nl2br(e($error)) !!}</li>@endforeach</ul>',
+            confirmButtonColor: '#059669',
+            confirmButtonText: 'OK',
+            width: '400px',
+        });
+    @endif
+});
+</script>
 
 @stack('scripts')
 </body>

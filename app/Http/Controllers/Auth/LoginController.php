@@ -56,7 +56,7 @@ class LoginController extends Controller
                 if ($user->hasActiveApplication()) {
                     return redirect()->route('register.dashboard');
                 }
-                return redirect('/member/dashboard');
+                return redirect()->route('register.create');
             }
             return $intended;
         }

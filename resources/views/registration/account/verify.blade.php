@@ -13,20 +13,6 @@
             <p class="text-primary-600 text-sm mt-1">Verify your email and phone individually to continue</p>
         </div>
 
-        @if(session('success'))
-            <div class="mb-4 p-4 rounded-xl bg-primary-50 border border-primary-200 text-primary-800 text-sm flex items-center gap-3 animate-fade-in">
-                <i class="fa-solid fa-check-circle text-primary-500"></i>
-                {{ session('success') }}
-            </div>
-        @endif
-
-        @if(session('error'))
-            <div class="mb-4 p-4 rounded-xl bg-red-50 border border-red-200 text-red-800 text-sm flex items-center gap-3 animate-fade-in">
-                <i class="fa-solid fa-exclamation-circle text-red-500"></i>
-                {{ session('error') }}
-            </div>
-        @endif
-
         {{-- EMAIL VERIFICATION --}}
         <div class="card p-6 mb-4 {{ $verification && $verification->isEmailVerified() ? 'border-green-300 bg-green-50' : '' }}">
             <div class="flex items-center gap-3 mb-4">

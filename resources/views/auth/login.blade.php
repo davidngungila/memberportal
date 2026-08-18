@@ -8,6 +8,8 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -199,10 +201,44 @@
                 </form>
             </div>
 
+            <div class="text-center mt-4">
+                <p class="text-sm text-gray-500">
+                    Not a member yet?
+                    <a href="{{ route('register.create') }}" class="font-semibold text-green-600 hover:text-green-700 transition-colors">
+                        Register here
+                    </a>
+                </p>
+            </div>
+
             <p class="text-center text-gray-400 text-xs mt-6">
                 &copy; {{ date('Y') }} Feedtan Digital. All rights reserved.
             </p>
         </div>
     </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        @if(session('success'))
+            Swal.fire({
+                icon: 'success',
+                title: 'Success',
+                text: {!! json_encode(session('success')) !!},
+                confirmButtonColor: '#059669',
+                confirmButtonText: 'OK',
+                timer: 5000,
+                timerProgressBar: true,
+            });
+        @endif
+        @if(session('error'))
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: {!! json_encode(session('error')) !!},
+                confirmButtonColor: '#059669',
+                confirmButtonText: 'OK',
+            });
+        @endif
+    });
+    </script>
 </body>
 </html>

@@ -112,7 +112,7 @@ class VerificationService
     public function sendPhoneCode(string $phone, string $code): void
     {
         try {
-            $this->smsService->send($phone, "Your verification code is: {$code}. It expires in 10 minutes.");
+            $this->smsService->sendSingle($phone, "Your verification code is: {$code}. It expires in 10 minutes.");
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Failed to send phone verification code', [
                 'phone' => $phone,

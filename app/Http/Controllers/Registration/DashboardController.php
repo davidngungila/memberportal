@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Registration;
 
 use App\Http\Controllers\Controller;
-use App\Models\MembershipType;
+use App\Models\MemberType;
 use App\Services\Registration\RegistrationService;
 
 class DashboardController extends Controller
@@ -33,7 +33,7 @@ class DashboardController extends Controller
         }
 
         $progress = $this->registrationService->getApplicationProgress($application);
-        $membershipTypes = MembershipType::active()->get();
+        $membershipTypes = MemberType::active()->get();
 
         return view('registration.dashboard', [
             'application' => $application,

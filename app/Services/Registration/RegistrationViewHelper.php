@@ -51,7 +51,7 @@ class RegistrationViewHelper
         $currentOrder = $this->stageOrder[$this->application->current_stage] ?? -1;
         $requiredOrder = $this->stageOrder[$stage] ?? 0;
 
-        $isCurrent = request()->routeIs("register.{$route}");
+        $isCurrent = request()->routeIs($route);
         $isCompleted = $currentOrder > $requiredOrder;
         $isAvailable = $currentOrder >= $requiredOrder;
 

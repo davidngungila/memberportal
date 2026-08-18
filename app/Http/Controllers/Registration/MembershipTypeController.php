@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Registration;
 
 use App\Http\Controllers\Controller;
-use App\Models\MembershipType;
+use App\Models\MemberType;
 use App\Services\Registration\RegistrationService;
 use Illuminate\Http\Request;
 
@@ -25,7 +25,7 @@ class MembershipTypeController extends Controller
             return redirect()->route('register.create');
         }
 
-        $membershipTypes = MembershipType::active()->get();
+        $membershipTypes = MemberType::active()->get();
 
         return view('registration.membership-type', [
             'application' => $application,

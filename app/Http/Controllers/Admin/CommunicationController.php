@@ -3,22 +3,123 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\SentMessage;
+use App\Models\Member;
+use App\Services\MessagingService;
 use App\Services\WhatsAppService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Illuminate\Http\JsonResponse;
 
 class CommunicationController extends Controller
 {
     protected WhatsAppService $whatsappService;
+    protected MessagingService $messagingService;
 
-    public function __construct(WhatsAppService $whatsappService)
+    public function __construct(WhatsAppService $whatsappService, MessagingService $messagingService)
     {
         $this->whatsappService = $whatsappService;
+        $this->messagingService = $messagingService;
     }
 
     public function sms(): View
     {
-        return view('admin.communication.sms');
+        $stats = $this->messagingService->getStats();
+        $recentMessages = SentMessage::where('type', 'sms')
+            ->latest()
+            ->paginate(20);
+
+        return view('admin.communication.sms', compact('stats', 'recentMessages'));
+    }
+
+    public function sendSms(Request $request)
+    {
+        $validated = $request->validate([
+            'recipients' => 'required|array|min:1',
+            'recipients.*' => 'required|string',
+            'message' => 'required|string|max:1600',
+            'test_mode' => 'nullable|boolean',
+        ]);
+
+        $recipients = $validated['recipients'];
+        $message = $validated['message'];
+        $testMode = $request->boolean('test_mode', false);
+
+        $result = $this->messagingService->sendBulkSms($recipients, $message, null, $testMode);
+
+        if ($result['success']) {
+            return back()->with('success', "SMS sent successfully. {$result['sent']}/{$result['total']} delivered.");
+        }
+
+        return back()->with('error', "SMS sending failed. {$result['failed']}/{$result['total']} failed.");
+    }
+
+    public function sendBulkSms(Request $request)
+    {
+        $validated = $request->validate([
+            'member_type' => 'nullable|string',
+            'phone_numbers' => 'nullable|string',
+            'message' => 'required|string|max:1600',
+            'test_mode' => 'nullable|boolean',
+        ]);
+
+        $recipients = [];
+
+        if (!empty($validated['phone_numbers'])) {
+            $recipients = array_filter(array_map('trim', explode("\n", $validated['phone_numbers'])));
+        } else {
+            $query = Member::whereNotNull('phone')->where('phone', '!=', '');
+
+            if (!empty($validated['member_type'])) {
+                $query->where('membership_type_id', $validated['member_type']);
+            }
+
+            $recipients = $query->pluck('phone')->toArray();
+        }
+
+        if (empty($recipients)) {
+            return back()->with('error', 'No recipients found.');
+        }
+
+        $testMode = $request->boolean('test_mode', false);
+        $result = $this->messagingService->sendBulkSms($recipients, $validated['message'], null, $testMode);
+
+        if ($result['success']) {
+            return back()->with('success', "Bulk SMS sent. {$result['sent']}/{$result['total']} delivered.");
+        }
+
+        return back()->with('error', "Bulk SMS failed. {$result['failed']}/{$result['total']} failed.");
+    }
+
+    public function smsHistory(Request $request)
+    {
+        $query = SentMessage::where('type', 'sms');
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('to', 'like', "%{$search}%")
+                  ->orWhere('message', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
+
+        if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
+
+        $messages = $query->latest()->paginate(25);
+
+        return response()->json([
+            'messages' => $messages,
+        ]);
     }
 
     public function email(): View
@@ -98,7 +199,7 @@ class CommunicationController extends Controller
                 'parameters' => $tmpl->parameters ?? [],
             ];
         })->toArray();
-        
+
         return view('admin.communication.test-whatsapp', [
             'whatsappSettings' => $whatsappSettings,
             'templates' => $templates,
@@ -120,13 +221,11 @@ class CommunicationController extends Controller
             $personalisation = $request->input('personalisation');
             $test = $request->input('test', false);
 
-            // Format phone number
             $phone = preg_replace('/[^0-9]/', '', $phone);
             if (!str_starts_with($phone, '255')) {
                 $phone = '255' . ltrim($phone, '0');
             }
 
-            // Use personalized message if personalisation data is provided
             if ($personalisation && is_array($personalisation)) {
                 $result = $this->whatsappService->sendPersonalizedMessage([$phone], $template, $personalisation, $test);
             } else {

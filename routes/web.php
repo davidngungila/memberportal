@@ -496,6 +496,9 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->name('admin.')->grou
         Route::post('/whatsapp/decrypt-media-raw', [\App\Http\Controllers\Admin\WhatsAppCommunicationController::class, 'decryptMediaRaw'])->name('whatsapp.decrypt-media-raw');
 
         // SMS endpoints
+        Route::post('/sms/send', [\App\Http\Controllers\Admin\CommunicationController::class, 'sendSms'])->name('sms.send');
+        Route::post('/sms/bulk', [\App\Http\Controllers\Admin\CommunicationController::class, 'sendBulkSms'])->name('sms.bulk');
+        Route::get('/sms/history', [\App\Http\Controllers\Admin\CommunicationController::class, 'smsHistory'])->name('sms.history');
         Route::post('/whatsapp/send-single-sms', [\App\Http\Controllers\Admin\WhatsAppCommunicationController::class, 'sendSingleSms'])->name('whatsapp.send-single-sms');
         Route::post('/whatsapp/send-bulk-sms', [\App\Http\Controllers\Admin\WhatsAppCommunicationController::class, 'sendBulkSms'])->name('whatsapp.send-bulk-sms');
         Route::post('/whatsapp/toggle-status', [\App\Http\Controllers\Admin\WhatsAppCommunicationController::class, 'toggleStatus'])->name('whatsapp.toggle-status');
