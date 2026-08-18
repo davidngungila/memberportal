@@ -5,17 +5,18 @@ namespace App\Services\Registration;
 use App\Models\User;
 use App\Models\VerificationCode;
 use App\Services\MailConfigService;
-use App\Services\SmsService;
+use App\Services\MessagingService;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
 class VerificationService
 {
     public function __construct(
-        protected SmsService $smsService,
+        protected MessagingService $messagingService,
         protected MailConfigService $mailConfigService,
     ) {}
 
-    public function sendVerificationCodes(User $user, string $email, string $phone): VerificationCode
+    public function sendVerificationCodes(User $user, string $email, string $phone): array
     {
         $existingVerification = $user->verificationCode()->latest()->first();
 
@@ -27,10 +28,14 @@ class VerificationService
             $verification = VerificationCode::createForUser($user, $email, $phone);
         }
 
-        $this->sendEmailCode($email, $verification->email_code);
-        $this->sendPhoneCode($phone, $verification->phone_code);
+        $emailSent = $this->sendEmailCode($email, $verification->email_code);
+        $smsSent = $this->sendPhoneCode($phone, $verification->phone_code);
 
-        return $verification;
+        return [
+            'verification' => $verification,
+            'email_sent' => $emailSent,
+            'sms_sent' => $smsSent,
+        ];
     }
 
     public function verify(User $user, string $emailCode, string $phoneCode): array
@@ -82,20 +87,30 @@ class VerificationService
             return ['success' => false, 'message' => 'No verification session found.'];
         }
 
+        $emailSent = false;
+        $smsSent = false;
+
         if (!$verification->isEmailVerified()) {
             $verification->resendEmailCode();
-            $this->sendEmailCode($verification->email, $verification->email_code);
+            $emailSent = $this->sendEmailCode($verification->email, $verification->email_code);
         }
 
         if (!$verification->isPhoneVerified()) {
             $verification->resendPhoneCode();
-            $this->sendPhoneCode($verification->phone, $verification->phone_code);
+            $smsSent = $this->sendPhoneCode($verification->phone, $verification->phone_code);
         }
 
-        return ['success' => true, 'message' => 'Verification codes resent.'];
+        $messages = [];
+        if ($emailSent) $messages[] = 'Email code sent';
+        if ($smsSent) $messages[] = 'SMS code sent';
+        if (!$emailSent && !$smsSent) {
+            return ['success' => false, 'message' => 'Failed to send verification codes.'];
+        }
+
+        return ['success' => true, 'message' => implode('. ', $messages) . '.'];
     }
 
-    public function sendEmailCode(string $email, string $code): void
+    public function sendEmailCode(string $email, string $code): bool
     {
         try {
             $this->mailConfigService->configureFromDatabase();
@@ -105,23 +120,42 @@ class VerificationService
                     ->subject('Email Verification Code')
                     ->from(config('mail.from.address'), config('mail.from.name'));
             });
+
+            Log::info('Email verification code sent', ['email' => $email]);
+            return true;
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Failed to send email verification code', [
+            Log::error('Failed to send email verification code', [
                 'email' => $email,
                 'error' => $e->getMessage(),
             ]);
+            return false;
         }
     }
 
-    public function sendPhoneCode(string $phone, string $code): void
+    public function sendPhoneCode(string $phone, string $code): bool
     {
         try {
-            $this->smsService->sendSingle($phone, "Your verification code is: {$code}. It expires in 10 minutes.");
+            $result = $this->messagingService->sendSms(
+                $phone,
+                "Your verification code is: {$code}. It expires in 10 minutes."
+            );
+
+            if ($result['success']) {
+                Log::info('Phone verification code sent', ['phone' => $phone]);
+                return true;
+            }
+
+            Log::error('Failed to send phone verification code', [
+                'phone' => $phone,
+                'response' => $result['response'] ?? null,
+            ]);
+            return false;
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Failed to send phone verification code', [
+            Log::error('Failed to send phone verification code', [
                 'phone' => $phone,
                 'error' => $e->getMessage(),
             ]);
+            return false;
         }
     }
 }
