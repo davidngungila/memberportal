@@ -186,6 +186,12 @@ class MessagingService
 
     public function isActive(): bool
     {
-        return !empty($this->apiKey);
+        $profile = CommunicationProfile::where('type', 'sms')->where('is_active', true)->first();
+        if ($profile) {
+            return !empty($this->apiKey);
+        }
+
+        $smsSettings = SmsSettings::first();
+        return $smsSettings && $smsSettings->is_active && !empty($this->apiKey);
     }
 }
