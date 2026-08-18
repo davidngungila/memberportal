@@ -10,28 +10,28 @@ return new class extends Migration
     {
         Schema::table('loans', function (Blueprint $table) {
             if (!Schema::hasColumn('loans', 'membercode')) {
-                $table->string('membercode')->nullable()->after('member_number');
+                $table->string('membercode')->nullable();
                 $table->index('membercode');
             }
         });
 
         Schema::table('saving_plans', function (Blueprint $table) {
             if (!Schema::hasColumn('saving_plans', 'membercode')) {
-                $table->string('membercode')->nullable()->after('memberid');
+                $table->string('membercode')->nullable();
                 $table->index('membercode');
             }
         });
 
         Schema::table('deposits', function (Blueprint $table) {
             if (!Schema::hasColumn('deposits', 'membercode')) {
-                $table->string('membercode')->nullable()->after('member_number');
+                $table->string('membercode')->nullable();
                 $table->index('membercode');
             }
         });
 
         Schema::table('saving_balances', function (Blueprint $table) {
             if (!Schema::hasColumn('saving_balances', 'membercode')) {
-                $table->string('membercode')->nullable()->after('customer_id');
+                $table->string('membercode')->nullable();
                 $table->index('membercode');
             }
         });
