@@ -15,7 +15,7 @@ return new class extends Migration
             $table->string('first_name')->nullable()->after('membership_type_id');
             $table->string('middle_name')->nullable()->after('first_name');
             $table->string('last_name')->nullable()->after('middle_name');
-            $table->string('profile_photo')->nullable()->after('photo');
+            $table->string('profile_photo')->nullable()->after('last_name');
             $table->enum('registration_status', [
                 'registered',
                 'pending_documentation',
