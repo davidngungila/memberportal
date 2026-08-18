@@ -28,7 +28,7 @@ class SavingPlanController extends Controller
 
         return view('registration.saving-plan', [
             'application' => $application,
-            'savingPlan' => $savingPlan,
+            'savingPlan' => $savingPlan ?? (object) ['plan_name' => '', 'frequency' => '', 'target_amount' => '', 'periodic_amount' => '', 'expected_saving_date' => null],
         ]);
     }
 

@@ -68,7 +68,7 @@
 <script>
     function bankForm() {
         return {
-            banks: @json($bankAccounts->count() > 0 ? $bankAccounts->toArray() : [['bank_name' => '', 'account_name' => '', 'account_number' => '', 'branch' => '']]),
+            banks: @json($bankAccountsJson),
             addBank() {
                 this.banks.push({ bank_name: '', account_name: '', account_number: '', branch: '' });
             },

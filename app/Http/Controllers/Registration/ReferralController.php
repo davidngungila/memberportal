@@ -29,7 +29,7 @@ class ReferralController extends Controller
 
         return view('registration.referral', [
             'application' => $application,
-            'referral' => $referral,
+            'referral' => $referral ?? (object) ['was_referred' => false, 'referee_membercode' => null, 'referee_name' => null],
         ]);
     }
 

@@ -24,11 +24,22 @@ class NextOfKinController extends Controller
             return redirect()->route('register.create');
         }
 
-        $nextOfKin = $application->nextOfKin;
+        $nextOfKin = $application->nextOfKin()->get();
+
+        $nextOfKinJson = $nextOfKin->count() > 0
+            ? $nextOfKin->map(fn($k) => [
+                'full_name' => $k->full_name,
+                'relationship' => $k->relationship,
+                'phone' => $k->phone,
+                'alternative_phone' => $k->alternative_phone ?? '',
+                'address' => $k->address ?? '',
+            ])->toArray()
+            : [['full_name' => '', 'relationship' => '', 'phone' => '', 'alternative_phone' => '', 'address' => '']];
 
         return view('registration.next-of-kin', [
             'application' => $application,
             'nextOfKin' => $nextOfKin,
+            'nextOfKinJson' => $nextOfKinJson,
         ]);
     }
 

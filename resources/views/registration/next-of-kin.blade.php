@@ -81,7 +81,7 @@
 <script>
     function kinForm() {
         return {
-            kinList: @json($nextOfKin->count() > 0 ? $nextOfKin->toArray() : [['full_name' => '', 'relationship' => '', 'phone' => '', 'alternative_phone' => '', 'address' => '']]),
+            kinList: @json($nextOfKinJson),
             addKin() {
                 this.kinList.push({ full_name: '', relationship: '', phone: '', alternative_phone: '', address: '' });
             },

@@ -24,11 +24,21 @@ class BankDetailsController extends Controller
             return redirect()->route('register.create');
         }
 
-        $bankAccounts = $application->bankAccounts;
+        $bankAccounts = $application->bankAccounts()->get();
+
+        $bankAccountsJson = $bankAccounts->count() > 0
+            ? $bankAccounts->map(fn($a) => [
+                'bank_name' => $a->bank_name,
+                'account_name' => $a->account_name,
+                'account_number' => $a->account_number,
+                'branch' => $a->branch ?? '',
+            ])->toArray()
+            : [['bank_name' => '', 'account_name' => '', 'account_number' => '', 'branch' => '']];
 
         return view('registration.bank-details', [
             'application' => $application,
             'bankAccounts' => $bankAccounts,
+            'bankAccountsJson' => $bankAccountsJson,
         ]);
     }
 
