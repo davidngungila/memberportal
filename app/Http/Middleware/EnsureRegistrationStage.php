@@ -43,10 +43,16 @@ class EnsureRegistrationStage
         }
 
         if ($application->application_status === 'submitted' || $application->application_status === 'under_review') {
+            if ($request->routeIs('register.status') || $request->routeIs('member.dashboard')) {
+                return $next($request);
+            }
             return redirect()->route('register.status');
         }
 
         if ($application->application_status === 'approved') {
+            if ($request->routeIs('member.*')) {
+                return $next($request);
+            }
             return redirect()->route('member.dashboard');
         }
 

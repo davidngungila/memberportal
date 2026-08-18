@@ -140,17 +140,122 @@
 
     <div x-show="sidebarOpen" x-transition:enter="transition-transform duration-200" x-transition:leave="transition-transform duration-200" class="lg:hidden fixed left-0 top-0 bottom-0 w-72 sidebar-bg z-50 transform -translate-x-full" :class="{ 'translate-x-0': sidebarOpen }" style="display:none">
         <div class="p-5 border-b border-white/10 flex items-center justify-between">
-            <h1 class="text-white font-bold text-sm">REGISTRATION</h1>
+            <a href="{{ route('register.dashboard') }}" class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-primary-500 flex items-center justify-center">
+                    <i class="fa-solid fa-shield-halved text-white"></i>
+                </div>
+                <div>
+                    <h1 class="text-white font-bold text-sm">REGISTRATION</h1>
+                    <p class="text-primary-300 text-[10px] tracking-widest">MEMBERSHIP PORTAL</p>
+                </div>
+            </a>
             <button @click="sidebarOpen = false" class="text-primary-400 hover:text-white">
                 <i class="fa-solid fa-xmark"></i>
             </button>
         </div>
-        <nav class="py-4 px-3 overflow-y-auto h-[calc(100%-140px)]">
-            <a href="{{ route('register.dashboard') }}" class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-primary-100">
-                <i class="fa-solid fa-gauge-high w-5 text-center text-xs"></i>
-                <span>Dashboard</span>
-            </a>
+        <nav class="py-4 px-3 overflow-y-auto h-[calc(100%-70px)]">
+            <div class="mb-3">
+                <p class="text-primary-400 text-[10px] font-bold tracking-widest px-3 mb-2">NAVIGATION</p>
+                <a href="{{ route('register.dashboard') }}" class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm {{ request()->routeIs('register.dashboard') ? 'active' : 'text-primary-100' }}">
+                    <i class="fa-solid fa-gauge-high w-5 text-center text-xs"></i>
+                    <span>Dashboard</span>
+                </a>
+            </div>
+
+            <div class="mb-3">
+                <p class="text-primary-400 text-[10px] font-bold tracking-widest px-3 mb-2">APPLICATION</p>
+                <a href="{{ route('register.membership-type') }}" class="{{ $regHelper->getStageStatus('membership_selected', 'register.membership-type') }}">
+                    <i class="fa-solid fa-layer-group w-5 text-center text-xs"></i>
+                    <span>Membership Type</span>
+                    <span class="ml-auto">{!! $regHelper->getStageIcon('membership_selected') !!}</span>
+                </a>
+                <a href="{{ route('register.payment') }}" class="{{ $regHelper->getStageStatus('payment_completed', 'register.payment') }}">
+                    <i class="fa-solid fa-credit-card w-5 text-center text-xs"></i>
+                    <span>Payment</span>
+                    <span class="ml-auto">{!! $regHelper->getStageIcon('payment_completed') !!}</span>
+                </a>
+            </div>
+
+            <div class="mb-3">
+                <p class="text-primary-400 text-[10px] font-bold tracking-widest px-3 mb-2">PERSONAL INFO</p>
+                <a href="{{ route('register.personal-details') }}" class="{{ $regHelper->getStageStatus('personal_details_completed', 'register.personal-details') }}">
+                    <i class="fa-solid fa-user w-5 text-center text-xs"></i>
+                    <span>Personal Details</span>
+                    <span class="ml-auto">{!! $regHelper->getStageIcon('personal_details_completed') !!}</span>
+                </a>
+                <a href="{{ route('register.profile-photo') }}" class="{{ $regHelper->getStageStatus('profile_completed', 'register.profile-photo') }}">
+                    <i class="fa-solid fa-camera w-5 text-center text-xs"></i>
+                    <span>Profile Photo</span>
+                    <span class="ml-auto">{!! $regHelper->getStageIcon('profile_completed') !!}</span>
+                </a>
+            </div>
+
+            <div class="mb-3">
+                <p class="text-primary-400 text-[10px] font-bold tracking-widest px-3 mb-2">FINANCIAL</p>
+                <a href="{{ route('register.bank-details') }}" class="{{ $regHelper->getStageStatus('bank_details_completed', 'register.bank-details') }}">
+                    <i class="fa-solid fa-building-columns w-5 text-center text-xs"></i>
+                    <span>Bank Details</span>
+                    <span class="ml-auto">{!! $regHelper->getStageIcon('bank_details_completed') !!}</span>
+                </a>
+                <a href="{{ route('register.saving-plan') }}" class="{{ $regHelper->getStageStatus('saving_plan_completed', 'register.saving-plan') }}">
+                    <i class="fa-solid fa-piggy-bank w-5 text-center text-xs"></i>
+                    <span>Saving Plan</span>
+                    <span class="ml-auto">{!! $regHelper->getStageIcon('saving_plan_completed') !!}</span>
+                </a>
+            </div>
+
+            <div class="mb-3">
+                <p class="text-primary-400 text-[10px] font-bold tracking-widest px-3 mb-2">OTHER</p>
+                <a href="{{ route('register.next-of-kin') }}" class="{{ $regHelper->getStageStatus('next_of_kin_completed', 'register.next-of-kin') }}">
+                    <i class="fa-solid fa-people-roof w-5 text-center text-xs"></i>
+                    <span>Next of Kin</span>
+                    <span class="ml-auto">{!! $regHelper->getStageIcon('next_of_kin_completed') !!}</span>
+                </a>
+                <a href="{{ route('register.referral') }}" class="{{ $regHelper->getStageStatus('referral_completed', 'register.referral') }}">
+                    <i class="fa-solid fa-handshake w-5 text-center text-xs"></i>
+                    <span>Referral</span>
+                    <span class="ml-auto">{!! $regHelper->getStageIcon('referral_completed') !!}</span>
+                </a>
+            </div>
+
+            <div class="mb-3">
+                <p class="text-primary-400 text-[10px] font-bold tracking-widest px-3 mb-2">SUBMISSION</p>
+                <a href="{{ route('register.review') }}" class="{{ $regHelper->getStageStatus('ready_for_review', 'register.review') }}">
+                    <i class="fa-solid fa-clipboard-check w-5 text-center text-xs"></i>
+                    <span>Review</span>
+                    <span class="ml-auto">{!! $regHelper->getStageIcon('ready_for_review') !!}</span>
+                </a>
+                <a href="{{ route('register.submit') }}" class="{{ $regHelper->getStageStatus('submitted', 'register.submit') }}">
+                    <i class="fa-solid fa-paper-plane w-5 text-center text-xs"></i>
+                    <span>Submit</span>
+                    <span class="ml-auto">{!! $regHelper->getStageIcon('submitted') !!}</span>
+                </a>
+            </div>
+
+            <div class="mb-3">
+                <a href="{{ route('register.status') }}" class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm {{ request()->routeIs('register.status') ? 'active' : 'text-primary-100' }}">
+                    <i class="fa-solid fa-circle-info w-5 text-center text-xs"></i>
+                    <span>Application Status</span>
+                </a>
+            </div>
         </nav>
+
+        <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-white/10 bg-sidebar-bg">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-primary-500/20 flex items-center justify-center text-primary-300 text-xs font-bold">
+                    {{ substr(auth()->user()->email, 0, 2) }}
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-white text-xs font-semibold truncate">{{ auth()->user()->email }}</p>
+                </div>
+                <form method="POST" action="{{ route('logout') }}">
+                    @csrf
+                    <button type="submit" class="text-primary-400 hover:text-white transition">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
     </div>
 
     <div class="flex-1 lg:ml-72 xl:lg:ml-80 pt-16 lg:pt-0">
