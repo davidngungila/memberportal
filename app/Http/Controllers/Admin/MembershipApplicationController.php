@@ -27,11 +27,13 @@ class MembershipApplicationController extends Controller
                 $q->where('application_number', 'like', "%{$search}%")
                   ->orWhereHas('user', function ($q2) use ($search) {
                       $q2->where('email', 'like', "%{$search}%")
-                         ->orWhere('name', 'like', "%{$search}%");
+                         ->orWhere('name', 'like', "%{$search}%")
+                         ->orWhere('phone', 'like', "%{$search}%");
                   })
                   ->orWhereHas('personalDetail', function ($q3) use ($search) {
                       $q3->where('first_name', 'like', "%{$search}%")
-                         ->orWhere('last_name', 'like', "%{$search}%");
+                         ->orWhere('last_name', 'like', "%{$search}%")
+                         ->orWhere('phone', 'like', "%{$search}%");
                   });
             });
         }

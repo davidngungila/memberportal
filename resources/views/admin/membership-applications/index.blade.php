@@ -105,7 +105,7 @@
                             <td>
                                 <div>
                                     <p class="font-semibold text-primary-800">{{ $app->personalDetail->full_name ?? $app->user->name ?? '-' }}</p>
-                                    <p class="text-xs text-primary-500">{{ $app->user->email ?? '-' }}</p>
+                                    <p class="text-xs text-primary-500">{{ $app->user->phone ?? '-' }}</p>
                                 </div>
                             </td>
                             <td>{{ $app->membershipType->name ?? '-' }}</td>
