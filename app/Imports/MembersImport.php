@@ -27,7 +27,7 @@ class MembersImport implements ToCollection, WithHeadingRow
         foreach ($collection as $row) {
             try {
                 $memberData = [
-                    'member_number' => $row['member_number'] ?? $row['MemberNumber'] ?? null,
+                    'membercode' => $row['member_number'] ?? $row['MemberNumber'] ?? null,
                     'full_name' => $row['full_name'] ?? $row['Full_Name'] ?? $row['name'] ?? $row['Name'] ?? null,
                     'gender' => $row['gender'] ?? $row['Gender'] ?? null,
                     'phone' => $row['phone'] ?? $row['Phone'] ?? null,
@@ -56,14 +56,14 @@ class MembersImport implements ToCollection, WithHeadingRow
                     'photo' => $row['photo'] ?? $row['Photo'] ?? null,
                 ];
 
-                if (empty($memberData['member_number']) || empty($memberData['full_name'])) {
+                if (empty($memberData['membercode']) || empty($memberData['full_name'])) {
                     $this->errors[] = "Row skipped: Missing member number or full name";
                     continue;
                 }
 
                 // Save to database
                 Member::updateOrCreate(
-                    ['member_number' => $memberData['member_number']],
+                    ['membercode' => $memberData['membercode']],
                     $memberData
                 );
 
@@ -80,7 +80,7 @@ class MembersImport implements ToCollection, WithHeadingRow
                             'email' => $memberData['email'],
                             'password' => Hash::make('password123'), // Default password
                             'role' => 'member',
-                            'member_number' => $memberData['member_number'],
+                            'member_number' => $memberData['membercode'],
                             'photo' => $memberData['photo'], // Include photo if available
                         ]);
                         $this->createdUsers[] = $memberData['email'];

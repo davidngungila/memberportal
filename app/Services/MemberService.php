@@ -64,8 +64,8 @@ class MemberService
 
         return array_values(array_filter(
             $data,
-            static fn ($item): bool => isset($item['member_number'])
-                && str_contains(strtolower((string) $item['member_number']), $memberNumber)
+            static fn ($item): bool => isset($item['membercode'])
+                && str_contains(strtolower((string) $item['membercode']), $memberNumber)
         ));
     }
 
@@ -107,7 +107,7 @@ class MemberService
 
         $query = strtolower(trim($query));
         $searchFields = [
-            'member_number',
+            'membercode',
             'name',
             'email',
             'phone',

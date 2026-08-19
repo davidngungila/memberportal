@@ -36,7 +36,7 @@ class MemberController extends Controller
     public function index(Request $request)
     {
         $perPage = (int) $request->input('per_page', 15);
-        $sortColumn = $request->input('sort', 'member_number');
+        $sortColumn = $request->input('sort', 'membercode');
         $sortDirection = $request->input('sort_direction', 'asc');
 
         // Get all members from database for client-side filtering
@@ -46,7 +46,7 @@ class MemberController extends Controller
         if ($request->filled('q')) {
             $searchTerm = $request->input('q');
             $dbMembersQuery->where(function($query) use ($searchTerm) {
-                $query->where('member_number', 'like', '%' . $searchTerm . '%')
+                $query->where('membercode', 'like', '%' . $searchTerm . '%')
                       ->orWhere('full_name', 'like', '%' . $searchTerm . '%')
                       ->orWhere('email', 'like', '%' . $searchTerm . '%')
                       ->orWhere('phone', 'like', '%' . $searchTerm . '%');
@@ -58,8 +58,8 @@ class MemberController extends Controller
             $statusBadge = $this->dashboardService->memberStatusBadge($member->status);
             return [
                 'id' => $member->id,
-                'member_number' => $member->member_number,
-                'encrypted_id' => $this->encryptedIdService->encrypt($member->member_number),
+                'membercode' => $member->membercode,
+                'encrypted_id' => $this->encryptedIdService->encrypt($member->membercode),
                 'name' => $member->full_name,
                 'gender' => $member->gender,
                 'phone' => $member->phone,
@@ -76,7 +76,7 @@ class MemberController extends Controller
         $dbMembers = $dbMembersQuery->get()->map(function($member) {
             return [
                 'id' => $member->id,
-                'member_number' => $member->member_number,
+                'membercode' => $member->membercode,
                 'name' => $member->full_name,
                 'gender' => $member->gender,
                 'phone' => $member->phone,
@@ -90,7 +90,7 @@ class MemberController extends Controller
         // Use only database members
         $membersMap = [];
         foreach ($dbMembers as $member) {
-            $membersMap[$member['member_number']] = $member;
+            $membersMap[$member['membercode']] = $member;
         }
         $members = array_values($membersMap);
 
@@ -148,11 +148,11 @@ class MemberController extends Controller
         Gate::authorize('view-member-data', $memberNumber);
 
         // First check database for imported members
-        $dbMember = \App\Models\Member::where('member_number', $memberNumber)->first();
+        $dbMember = \App\Models\Member::where('membercode', $memberNumber)->first();
         
         if ($dbMember) {
             $member = [
-                'member_number' => $dbMember->member_number,
+                'membercode' => $dbMember->membercode,
                 'name' => $dbMember->full_name,
                 'gender' => $dbMember->gender,
                 'phone' => $dbMember->phone,
@@ -426,7 +426,7 @@ class MemberController extends Controller
         Gate::authorize('view-member-data', $memberNumber);
 
         // Get member from database
-        $member = \App\Models\Member::where('member_number', $memberNumber)->first();
+        $member = \App\Models\Member::where('membercode', $memberNumber)->first();
         
         if (!$member) {
             $this->error("Member {$memberNumber} not found in database.");
@@ -487,7 +487,7 @@ class MemberController extends Controller
         if ($request->wantsJson()) {
             return response()->json([
                 'member' => [
-                    'member_number' => $member->member_number,
+                    'membercode' => $member->membercode,
                     'name' => $member->full_name,
                 ],
                 'loans' => $loans,
@@ -496,7 +496,7 @@ class MemberController extends Controller
 
         return view('admin.members.partials.loans', [
             'member' => [
-                'member_number' => $member->member_number,
+                'membercode' => $member->membercode,
                 'name' => $member->full_name,
             ],
             'loans' => $loans,
@@ -513,7 +513,7 @@ class MemberController extends Controller
         Gate::authorize('view-member-data', $memberNumber);
 
         // Get member from database
-        $member = \App\Models\Member::where('member_number', $memberNumber)->first();
+        $member = \App\Models\Member::where('membercode', $memberNumber)->first();
         
         if (!$member) {
             $this->error("Member {$memberNumber} not found in database.");
@@ -580,7 +580,7 @@ class MemberController extends Controller
         if ($request->wantsJson()) {
             return response()->json([
                 'member' => [
-                    'member_number' => $member->member_number,
+                    'membercode' => $member->membercode,
                     'name' => $member->full_name,
                 ],
                 'savings' => $savings,
@@ -589,7 +589,7 @@ class MemberController extends Controller
 
         return view('admin.members.partials.savings', [
             'member' => [
-                'member_number' => $member->member_number,
+                'membercode' => $member->membercode,
                 'name' => $member->full_name,
             ],
             'savings' => $savings,

@@ -9,7 +9,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Member extends Model
 {
     protected $fillable = [
-        'member_number',
         'membercode',
         'user_id',
         'membership_type_id',

@@ -6,7 +6,7 @@
 @php
     $memberStatus = $member['status'] ?? 'Active';
     $statusActive = strtolower($memberStatus) === 'active';
-    $memberNum = $member['member_number'] ?? $user->member_number ?? 'N/A';
+    $memberNum = $member['membercode'] ?? $user->member_number ?? 'N/A';
 
     function fmtTsh($val): string {
         return 'TSh ' . number_format((float)$val, 2, '.', ',');
@@ -51,7 +51,7 @@
         <div class="flex flex-col sm:flex-row sm:items-center gap-4 justify-between">
             <div class="flex flex-wrap items-center gap-3">
                 <div>
-                    <p class="text-[11px] uppercase tracking-wider font-bold text-primary-500 dark:text-primary-400 mb-1">Member Number</p>
+                    <p class="text-[11px] uppercase tracking-wider font-bold text-primary-500 dark:text-primary-400 mb-1">Member Code</p>
                     <span class="inline-flex items-center px-3 py-1.5 rounded-lg font-mono text-sm font-bold bg-primary-50 dark:bg-primary-900/40 text-primary-800 dark:text-primary-200 border border-primary-200 dark:border-primary-800/60">
                         <i class="fa-solid fa-id-card mr-2 text-primary-500 text-xs"></i>
                         {{ $memberNum }}

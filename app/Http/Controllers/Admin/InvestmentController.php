@@ -141,7 +141,7 @@ class InvestmentController extends Controller
     {
         Gate::authorize('admin-only');
 
-        $members = \App\Models\Member::all(['id', 'member_number', 'full_name']);
+        $members = \App\Models\Member::all(['id', 'membercode', 'full_name']);
         $products = InvestmentProduct::active()->get();
 
         return view('admin.investments.create', [
@@ -155,7 +155,7 @@ class InvestmentController extends Controller
         Gate::authorize('admin-only');
 
         $validated = $request->validate([
-            'member_number' => ['required', 'exists:members,member_number'],
+            'member_number' => ['required', 'exists:members,membercode'],
             'investment_product_id' => ['required', 'exists:investment_products,id'],
             'amount' => ['required', 'numeric', 'min:0'],
             'investment_date' => ['required', 'date'],
@@ -163,7 +163,7 @@ class InvestmentController extends Controller
             'notes' => ['nullable', 'string'],
         ]);
 
-        $member = \App\Models\Member::where('member_number', $validated['member_number'])->first();
+        $member = \App\Models\Member::where('membercode', $validated['member_number'])->first();
         $product = InvestmentProduct::find($validated['investment_product_id']);
 
         if (!$member) {

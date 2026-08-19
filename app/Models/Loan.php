@@ -61,7 +61,7 @@ class Loan extends Model
 
     public function member()
     {
-        return $this->belongsTo(Member::class, 'member_number', 'member_number');
+        return $this->belongsTo(Member::class, 'member_number', 'membercode');
     }
 
     public function loanPayments()

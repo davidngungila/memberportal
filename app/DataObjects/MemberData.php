@@ -17,7 +17,7 @@ class MemberData
         public readonly ?string $branch = null,
         public readonly ?string $registration_date = null,
         public readonly ?string $status = null,
-        public readonly ?string $member_number = null,
+        public readonly ?string $membercode = null,
     ) {
     }
 
@@ -34,7 +34,7 @@ class MemberData
             branch: $data['branch'] ?? $data['Branch'] ?? null,
             registration_date: $data['registration_date'] ?? $data['RegistrationDate'] ?? $data['registration_date'] ?? null,
             status: $data['status'] ?? $data['Status'] ?? null,
-            member_number: $data['member_number'] ?? $data['MemberNumber'] ?? null,
+            membercode: $data['membercode'] ?? $data['member_number'] ?? $data['MemberNumber'] ?? null,
         );
     }
 
@@ -51,7 +51,7 @@ class MemberData
             'branch' => $this->branch,
             'registration_date' => $this->registration_date,
             'status' => $this->status,
-            'member_number' => $this->member_number,
+            'membercode' => $this->membercode,
         ];
     }
 }

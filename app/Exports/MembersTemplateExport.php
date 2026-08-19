@@ -50,7 +50,7 @@ class MembersTemplateExport implements FromCollection, WithHeadings
     public function headings(): array
     {
         return [
-            'member_number',
+            'membercode',
             'full_name',
             'gender',
             'phone',

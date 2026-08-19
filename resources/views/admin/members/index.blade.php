@@ -16,7 +16,7 @@
       <div class="relative flex-1">
         <i class="fa-solid fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-xs text-primary-400"></i>
         <input type="text" 
-               placeholder="Search by member number, name, phone, email..."
+               placeholder="Search by member code, name, phone, email..."
                class="form-input pl-9 py-2.5 text-sm"
                x-model="searchQuery"/>
         <button x-show="searchQuery" @click="clearSearch()" class="absolute right-3 top-1/2 -translate-y-1/2 text-primary-400 hover:text-primary-600">
@@ -63,9 +63,9 @@
         <thead>
           <tr>
             <th class="w-12">#</th>
-            <th class="cursor-pointer select-none" @click="sortBy('member_number')">
-              Member Number
-              <i class="fa-solid ml-1.5 text-[10px] {{ $memberService->getSortDirectionIcon($sortColumn, 'member_number', $sortDirection) }}"></i>
+            <th class="cursor-pointer select-none" @click="sortBy('membercode')">
+              Member Code
+              <i class="fa-solid ml-1.5 text-[10px] {{ $memberService->getSortDirectionIcon($sortColumn, 'membercode', $sortDirection) }}"></i>
             </th>
             <th class="cursor-pointer select-none" @click="sortBy('name')">
               Full Name
@@ -83,7 +83,7 @@
               <td>
                 <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-primary-50 dark:bg-primary-900/40 font-mono text-xs font-bold text-primary-700 dark:text-primary-300">
                   <i class="fa-solid fa-id-card text-[10px] opacity-60"></i>
-                  <span x-text="member.member_number"></span>
+                  <span x-text="member.membercode"></span>
                 </span>
               </td>
               <td>
@@ -323,7 +323,7 @@
         
         const query = this.searchQuery.toLowerCase().trim();
         return this.allMembers.filter(member => {
-          const memberNo = (member.member_number || '').toLowerCase();
+          const memberNo = (member.membercode || '').toLowerCase();
           const name = (member.name || '').toLowerCase();
           const phone = (member.phone || '').toLowerCase();
           const email = (member.email || '').toLowerCase();

@@ -134,7 +134,7 @@
             <table class="w-full">
               <thead>
                 <tr class="bg-primary-50 dark:bg-primary-900/20">
-                  <th class="text-left px-4 py-3 text-xs font-semibold text-primary-600 dark:text-primary-400">Member Number</th>
+                  <th class="text-left px-4 py-3 text-xs font-semibold text-primary-600 dark:text-primary-400">Member Code</th>
                   <th class="text-left px-4 py-3 text-xs font-semibold text-primary-600 dark:text-primary-400">Name</th>
                   <th class="text-left px-4 py-3 text-xs font-semibold text-primary-600 dark:text-primary-400">Email</th>
                   <th class="text-left px-4 py-3 text-xs font-semibold text-primary-600 dark:text-primary-400">Status</th>
@@ -146,7 +146,7 @@
                   <tr class="border-b border-primary-100 dark:border-primary-800 hover:bg-primary-50 dark:hover:bg-primary-900/10 transition-colors">
                     <td class="px-4 py-3">
                       <span class="inline-flex items-center px-2 py-1 rounded-lg bg-primary-100 dark:bg-primary-900/40 font-mono text-xs font-bold text-primary-700 dark:text-primary-300">
-                        {{ $member->member_number ?? 'N/A' }}
+                        {{ $member->membercode ?? 'N/A' }}
                       </span>
                     </td>
                     <td class="px-4 py-3 text-sm font-medium text-primary-900 dark:text-white">{{ $member->name }}</td>

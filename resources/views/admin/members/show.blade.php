@@ -8,7 +8,7 @@
   $fmtInt = fn($n) => number_format((int)$n);
 
   $memberName = $member['name'] ?? ($member['Name'] ?? 'Unknown Member');
-  $memberNo = $member['member_number'] ?? ($member['MemberNumber'] ?? $memberNumber);
+  $memberNo = $member['membercode'] ?? ($member['MemberCode'] ?? $memberNumber);
   $memberGender = $member['gender'] ?? ($member['Gender'] ?? '-');
   $memberPhone = $member['phone'] ?? ($member['Phone'] ?? '-');
   $memberEmail = $member['email'] ?? ($member['Email'] ?? '-');
@@ -199,7 +199,7 @@
             <span class="text-sm font-bold text-primary-900 dark:text-white text-right">{{ $memberName }}</span>
           </div>
           <div class="flex items-start justify-between pb-4 border-b border-primary-100 dark:border-primary-900/50">
-            <span class="text-xs font-semibold text-primary-500 dark:text-primary-400">Member Number</span>
+            <span class="text-xs font-semibold text-primary-500 dark:text-primary-400">Member Code</span>
             <span class="text-sm font-mono font-bold text-primary-900 dark:text-white">{{ $memberNo }}</span>
           </div>
           <div class="flex items-start justify-between pb-4 border-b border-primary-100 dark:border-primary-900/50">
@@ -840,7 +840,7 @@
   @endphp
 
   const memberData = {
-    member_number: '{{ $memberNo }}',
+    membercode: '{{ $memberNo }}',
     member_name: '{{ $memberName }}',
     registration_date: '{{ $memberRegDate }}',
     branch: '{{ $memberBranch }}',
@@ -848,7 +848,7 @@
   };
 
   // Generate unique verification code
-  const verificationCode = 'CERT-' + memberData.member_number.toUpperCase() + '-' + Math.random().toString(36).substring(2, 10).toUpperCase();
+  const verificationCode = 'CERT-' + memberData.membercode.toUpperCase() + '-' + Math.random().toString(36).substring(2, 10).toUpperCase();
   const verificationUrl = window.location.origin + '/verify-certificate/' + verificationCode;
 
   const certificateBackgroundUrl = '{{ $certificateBackgroundUrl }}';

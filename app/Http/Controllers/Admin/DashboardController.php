@@ -37,7 +37,7 @@ class DashboardController extends Controller
         // Get database members and merge with Google Sheets members
         $dbMembers = \App\Models\Member::all()->map(function($member) {
             return [
-                'member_number' => $member->member_number,
+                'membercode' => $member->membercode,
                 'name' => $member->full_name,
                 'gender' => $member->gender,
                 'phone' => $member->phone,
@@ -51,10 +51,10 @@ class DashboardController extends Controller
         // Merge members, prioritizing database members
         $membersMap = [];
         foreach ($dbMembers as $member) {
-            $membersMap[$member['member_number']] = $member;
+            $membersMap[$member['membercode']] = $member;
         }
         foreach ($allMembers as $member) {
-            $memberNo = $member['member_number'] ?? $member['MemberNumber'] ?? null;
+            $memberNo = $member['membercode'] ?? $member['MemberNumber'] ?? null;
             if ($memberNo && !isset($membersMap[$memberNo])) {
                 $membersMap[$memberNo] = $member;
             }

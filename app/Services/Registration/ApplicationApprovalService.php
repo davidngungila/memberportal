@@ -23,7 +23,6 @@ class ApplicationApprovalService
             $membercode = $this->generateMembercode();
 
             $member = Member::create([
-                'member_number' => $membercode,
                 'membercode' => $membercode,
                 'user_id' => $application->user_id,
                 'membership_type_id' => $application->membership_type_id,
