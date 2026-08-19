@@ -14,6 +14,17 @@
         </a>
     </div>
 
+    @if(!$application->user && !$application->personalDetail)
+        <div class="card p-8 text-center mb-6 border-yellow-200 bg-yellow-50">
+            <div class="w-16 h-16 rounded-full bg-yellow-100 flex items-center justify-center mx-auto mb-4">
+                <i class="fa-solid fa-triangle-exclamation text-yellow-500 text-2xl"></i>
+            </div>
+            <h3 class="text-lg font-bold text-primary-800 mb-2">Incomplete Application Data</h3>
+            <p class="text-sm text-primary-600 mb-2">This application has no linked user or personal details.</p>
+            <p class="text-xs text-primary-400">Application #{{ $application->application_number }} | Status: {{ ucfirst($application->application_status ?? 'draft') }} | Stage: {{ ucfirst(str_replace('_', ' ', $application->current_stage ?? 'unknown')) }}</p>
+        </div>
+    @endif
+
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="lg:col-span-2 space-y-6">
 
