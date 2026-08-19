@@ -33,16 +33,20 @@
                 <h2 class="text-sm font-bold text-primary-800 mb-4 flex items-center gap-2">
                     <i class="fa-solid fa-user text-primary-500"></i> APPLICANT ACCOUNT
                 </h2>
-                <div class="grid grid-cols-2 gap-3 text-sm">
-                    <div><span class="text-primary-600">Name:</span></div>
-                    <div class="font-semibold text-primary-800">{{ $application->user?->name ?? '-' }}</div>
-                    <div><span class="text-primary-600">Phone (Login):</span></div>
-                    <div class="font-semibold text-primary-800">{{ $application->user?->phone ?? '-' }}</div>
-                    <div><span class="text-primary-600">Email:</span></div>
-                    <div class="font-semibold text-primary-800">{{ $application->user?->email ?? 'Not provided' }}</div>
-                    <div><span class="text-primary-600">Registered:</span></div>
-                    <div class="font-semibold text-primary-800">{{ $application->user?->created_at?->format('d M Y, H:i') ?? '-' }}</div>
-                </div>
+                @if($application->user)
+                    <div class="grid grid-cols-2 gap-3 text-sm">
+                        <div><span class="text-primary-600">Name:</span></div>
+                        <div class="font-semibold text-primary-800">{{ $application->user->name ?? '-' }}</div>
+                        <div><span class="text-primary-600">Phone (Login):</span></div>
+                        <div class="font-semibold text-primary-800">{{ $application->user->phone ?? '-' }}</div>
+                        <div><span class="text-primary-600">Email:</span></div>
+                        <div class="font-semibold text-primary-800">{{ $application->user->email ?? 'Not provided' }}</div>
+                        <div><span class="text-primary-600">Registered:</span></div>
+                        <div class="font-semibold text-primary-800">{{ $application->user->created_at?->format('d M Y, H:i') ?? '-' }}</div>
+                    </div>
+                @else
+                    <p class="text-sm text-primary-400 italic">No user account linked to this application.</p>
+                @endif
             </div>
 
             {{-- MEMBERSHIP TYPE --}}
@@ -50,17 +54,30 @@
                 <h2 class="text-sm font-bold text-primary-800 mb-4 flex items-center gap-2">
                     <i class="fa-solid fa-id-card text-primary-500"></i> MEMBERSHIP TYPE
                 </h2>
-                <div class="grid grid-cols-2 gap-3 text-sm">
-                    <div><span class="text-primary-600">Type:</span></div>
-                    <div class="font-semibold text-primary-800">{{ $application->membershipType->name ?? '-' }}</div>
-                    <div><span class="text-primary-600">Registration Fee:</span></div>
-                    <div class="font-semibold text-primary-800">TZS {{ number_format($application->membershipType->registration_fee ?? 0) }}</div>
-                    <div><span class="text-primary-600">Payment Status:</span></div>
-                    <div>
-                        <span class="badge {{ $application->payment_status === 'successful' ? 'badge-green' : ($application->payment_status === 'pending' ? 'badge-yellow' : 'badge-gray') }}">
-                            {{ ucfirst($application->payment_status ?? 'N/A') }}
-                        </span>
+                @if($application->membershipType)
+                    <div class="grid grid-cols-2 gap-3 text-sm">
+                        <div><span class="text-primary-600">Type:</span></div>
+                        <div class="font-semibold text-primary-800">{{ $application->membershipType->name }}</div>
+                        <div><span class="text-primary-600">Registration Fee:</span></div>
+                        <div class="font-semibold text-primary-800">TZS {{ number_format($application->membershipType->registration_fee ?? 0) }}</div>
+                        <div><span class="text-primary-600">Payment Status:</span></div>
+                        <div>
+                            <span class="badge {{ ($application->payment_status ?? '') === 'successful' ? 'badge-green' : (($application->payment_status ?? '') === 'pending' ? 'badge-yellow' : 'badge-gray') }}">
+                                {{ ucfirst($application->payment_status ?? 'N/A') }}
+                            </span>
+                        </div>
                     </div>
+                @else
+                    <div class="grid grid-cols-2 gap-3 text-sm">
+                        <div><span class="text-primary-600">Type:</span></div>
+                        <div class="font-semibold text-primary-400 italic">Not selected</div>
+                        <div><span class="text-primary-600">Payment Status:</span></div>
+                        <div>
+                            <span class="badge badge-gray">{{ ucfirst($application->payment_status ?? 'N/A') }}</span>
+                        </div>
+                    </div>
+                @endif
+            </div>
                 </div>
             </div>
 
@@ -118,16 +135,16 @@
             @endif
 
             {{-- PROFILE PHOTO --}}
-            @if($application->documents->count())
-                <div class="card p-5">
-                    <h2 class="text-sm font-bold text-primary-800 mb-4 flex items-center gap-2">
-                        <i class="fa-solid fa-camera text-primary-500"></i> PROFILE PHOTO / DOCUMENTS
-                    </h2>
+            <div class="card p-5">
+                <h2 class="text-sm font-bold text-primary-800 mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-camera text-primary-500"></i> PROFILE PHOTO / DOCUMENTS
+                </h2>
+                @if($application->documents && $application->documents->count())
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         @foreach($application->documents as $doc)
                             <div class="p-3 rounded-lg bg-primary-50 border border-primary-100">
                                 <div class="flex items-center gap-3">
-                                    @if(in_array(pathinfo($doc->file_name, PATHINFO_EXTENSION), ['jpg', 'jpeg', 'png', 'gif', 'webp']))
+                                    @if(in_array(strtolower(pathinfo($doc->file_name ?? '', PATHINFO_EXTENSION)), ['jpg', 'jpeg', 'png', 'gif', 'webp']))
                                         <img src="{{ asset('storage/' . $doc->file_path) }}" alt="{{ $doc->file_name }}" class="w-16 h-16 rounded-lg object-cover border border-primary-200">
                                     @else
                                         <div class="w-16 h-16 rounded-lg bg-primary-100 flex items-center justify-center">
@@ -135,8 +152,8 @@
                                         </div>
                                     @endif
                                     <div class="flex-1 min-w-0">
-                                        <p class="text-sm font-semibold text-primary-800 truncate">{{ $doc->document_type }}</p>
-                                        <p class="text-xs text-primary-500 truncate">{{ $doc->file_name }}</p>
+                                        <p class="text-sm font-semibold text-primary-800 truncate">{{ $doc->document_type ?? 'Document' }}</p>
+                                        <p class="text-xs text-primary-500 truncate">{{ $doc->file_name ?? '-' }}</p>
                                         @if($doc->file_size)
                                             <p class="text-xs text-primary-400">{{ round($doc->file_size / 1024, 1) }} KB</p>
                                         @endif
@@ -145,28 +162,30 @@
                             </div>
                         @endforeach
                     </div>
-                </div>
-            @endif
+                @else
+                    <p class="text-sm text-primary-400 italic">No documents uploaded yet.</p>
+                @endif
+            </div>
 
             {{-- PAYMENT DETAILS --}}
-            @if($application->payments->count())
-                <div class="card p-5">
-                    <h2 class="text-sm font-bold text-primary-800 mb-4 flex items-center gap-2">
-                        <i class="fa-solid fa-credit-card text-primary-500"></i> PAYMENT DETAILS
-                    </h2>
+            <div class="card p-5">
+                <h2 class="text-sm font-bold text-primary-800 mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-credit-card text-primary-500"></i> PAYMENT DETAILS
+                </h2>
+                @if($application->payments && $application->payments->count())
                     @foreach($application->payments as $payment)
                         <div class="p-3 rounded-lg bg-primary-50 border border-primary-100 {{ !$loop->first ? 'mt-2' : '' }}">
                             <div class="grid grid-cols-2 gap-2 text-sm">
                                 <div><span class="text-primary-600">Amount:</span></div>
-                                <div class="font-semibold text-primary-800">TZS {{ number_format($payment->amount) }}</div>
+                                <div class="font-semibold text-primary-800">TZS {{ number_format($payment->amount ?? 0) }}</div>
                                 <div><span class="text-primary-600">Method:</span></div>
                                 <div class="font-semibold text-primary-800">{{ ucfirst(str_replace('_', ' ', $payment->payment_method ?? '-')) }}</div>
                                 <div><span class="text-primary-600">Reference:</span></div>
                                 <div class="font-semibold text-primary-800">{{ $payment->transaction_reference ?? '-' }}</div>
                                 <div><span class="text-primary-600">Status:</span></div>
                                 <div>
-                                    <span class="badge {{ $payment->status === 'successful' ? 'badge-green' : ($payment->status === 'pending' ? 'badge-yellow' : 'badge-red') }}">
-                                        {{ ucfirst($payment->status) }}
+                                    <span class="badge {{ ($payment->status ?? '') === 'successful' ? 'badge-green' : (($payment->status ?? '') === 'pending' ? 'badge-yellow' : 'badge-red') }}">
+                                        {{ ucfirst($payment->status ?? 'unknown') }}
                                     </span>
                                 </div>
                                 @if($payment->paid_at)
@@ -176,15 +195,17 @@
                             </div>
                         </div>
                     @endforeach
-                </div>
-            @endif
+                @else
+                    <p class="text-sm text-primary-400 italic">No payment records found.</p>
+                @endif
+            </div>
 
             {{-- BANK DETAILS --}}
-            @if($application->bankAccounts->count())
-                <div class="card p-5">
-                    <h2 class="text-sm font-bold text-primary-800 mb-4 flex items-center gap-2">
-                        <i class="fa-solid fa-building-columns text-primary-500"></i> BANK DETAILS
-                    </h2>
+            <div class="card p-5">
+                <h2 class="text-sm font-bold text-primary-800 mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-building-columns text-primary-500"></i> BANK DETAILS
+                </h2>
+                @if($application->bankAccounts && $application->bankAccounts->count())
                     @foreach($application->bankAccounts as $bank)
                         <div class="p-3 rounded-lg bg-primary-50 border border-primary-100 {{ !$loop->first ? 'mt-2' : '' }}">
                             <div class="flex items-center justify-between mb-2">
@@ -203,15 +224,17 @@
                             </div>
                         </div>
                     @endforeach
-                </div>
-            @endif
+                @else
+                    <p class="text-sm text-primary-400 italic">No bank details provided.</p>
+                @endif
+            </div>
 
             {{-- NEXT OF KIN --}}
-            @if($application->nextOfKin->count())
-                <div class="card p-5">
-                    <h2 class="text-sm font-bold text-primary-800 mb-4 flex items-center gap-2">
-                        <i class="fa-solid fa-people-roof text-primary-500"></i> NEXT OF KIN
-                    </h2>
+            <div class="card p-5">
+                <h2 class="text-sm font-bold text-primary-800 mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-people-roof text-primary-500"></i> NEXT OF KIN
+                </h2>
+                @if($application->nextOfKin && $application->nextOfKin->count())
                     @foreach($application->nextOfKin as $kin)
                         <div class="p-3 rounded-lg bg-primary-50 border border-primary-100 {{ !$loop->first ? 'mt-2' : '' }}">
                             <div class="flex items-center justify-between mb-2">
@@ -236,8 +259,10 @@
                             </div>
                         </div>
                     @endforeach
-                </div>
-            @endif
+                @else
+                    <p class="text-sm text-primary-400 italic">No next of kin details provided.</p>
+                @endif
+            </div>
 
             {{-- REFERRAL --}}
             @if($application->referral)
@@ -293,7 +318,7 @@
                 <div class="space-y-3">
                     <div class="flex items-center justify-between">
                         <span class="text-xs text-primary-600">Status</span>
-                        <span class="badge {{ match($application->application_status) {
+                        <span class="badge {{ match($application->application_status ?? '') {
                             'submitted' => 'badge-blue',
                             'under_review' => 'badge-blue',
                             'approved' => 'badge-green',
@@ -301,7 +326,7 @@
                             'correction_required' => 'badge-yellow',
                             default => 'badge-gray',
                         } }}">
-                            {{ ucfirst(str_replace('_', ' ', $application->application_status)) }}
+                            {{ ucfirst(str_replace('_', ' ', $application->application_status ?? 'unknown')) }}
                         </span>
                     </div>
                     <div class="flex items-center justify-between">
@@ -313,7 +338,7 @@
                     </div>
                     <div class="flex items-center justify-between">
                         <span class="text-xs text-primary-600">Current Stage</span>
-                        <span class="text-xs font-bold text-primary-800">{{ ucfirst(str_replace('_', ' ', $application->current_stage)) }}</span>
+                        <span class="text-xs font-bold text-primary-800">{{ ucfirst(str_replace('_', ' ', $application->current_stage ?? 'unknown')) }}</span>
                     </div>
                     <div class="flex items-center justify-between">
                         <span class="text-xs text-primary-600">Submitted</span>
