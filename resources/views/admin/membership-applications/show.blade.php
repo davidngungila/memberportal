@@ -567,7 +567,7 @@
                 <p class="text-sm text-primary-500 mb-5">A member account will be created with a unique member code.</p>
                 <div class="flex gap-3">
                     <button type="button" @click="approveModal = false" class="flex-1 px-4 py-2.5 rounded-lg border border-gray-200 text-primary-600 text-sm font-semibold hover:bg-gray-50 transition">Cancel</button>
-                    <form method="POST" action="{{ route('admin.membership-applications.approve', ['application' => $application->id]) }}" class="flex-1">
+                    <form method="POST" action="{{ url('admin/membership-applications/' . $application->id . '/approve') }}" class="flex-1">
                         @csrf
                         <button type="submit" class="w-full px-4 py-2.5 rounded-lg bg-green-600 text-white text-sm font-semibold hover:bg-green-700 transition">Yes, Approve</button>
                     </form>
@@ -587,7 +587,7 @@
                 <p class="text-sm text-primary-500 mb-1">Application: <strong>{{ $application->application_number ?? '' }}</strong></p>
                 <p class="text-sm text-primary-500">Describe what needs to be corrected.</p>
             </div>
-            <form method="POST" action="{{ route('admin.membership-applications.request-correction', ['application' => $application->id]) }}">
+            <form method="POST" action="{{ url('admin/membership-applications/' . $application->id . '/correction') }}">
                 @csrf
                 <div class="mb-5">
                     <textarea name="correction_notes" class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-primary-800 focus:outline-none focus:ring-2 focus:ring-yellow-300 focus:border-yellow-400 transition" rows="4" placeholder="What needs to be corrected?" required></textarea>
@@ -611,7 +611,7 @@
                 <p class="text-sm text-primary-500 mb-1">Application: <strong>{{ $application->application_number ?? '' }}</strong></p>
                 <p class="text-sm text-primary-500">This action cannot be undone. Provide a reason.</p>
             </div>
-            <form method="POST" action="{{ route('admin.membership-applications.reject', ['application' => $application->id]) }}">
+            <form method="POST" action="{{ url('admin/membership-applications/' . $application->id . '/reject') }}">
                 @csrf
                 <div class="mb-5">
                     <textarea name="rejection_reason" class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-primary-800 focus:outline-none focus:ring-2 focus:ring-red-300 focus:border-red-400 transition" rows="4" placeholder="Reason for rejection..." required></textarea>
