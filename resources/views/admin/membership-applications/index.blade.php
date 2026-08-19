@@ -11,7 +11,7 @@
         </div>
     </div>
 
-    <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+    <div class="grid grid-cols-2 md:grid-cols-6 gap-4 mb-6">
         <a href="{{ route('admin.membership-applications.index') }}" class="stat-card card {{ !request('status') ? 'border-primary-400' : '' }}">
             <div class="flex items-center justify-between">
                 <div>
@@ -20,6 +20,18 @@
                 </div>
                 <div class="icon-wrap bg-primary-100 text-primary-600">
                     <i class="fa-solid fa-folder-open"></i>
+                </div>
+            </div>
+        </a>
+
+        <a href="{{ route('admin.membership-applications.index', ['status' => 'draft']) }}" class="stat-card card {{ request('status') === 'draft' ? 'border-primary-400' : '' }}">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-xs text-primary-600 font-semibold">Pending</p>
+                    <p class="text-xl font-bold text-primary-800">{{ $stats['pending'] }}</p>
+                </div>
+                <div class="icon-wrap bg-orange-100 text-orange-600">
+                    <i class="fa-solid fa-hourglass-half"></i>
                 </div>
             </div>
         </a>
