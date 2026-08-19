@@ -77,7 +77,7 @@
         <div class="p-4 border-b border-primary-100">
             <form method="GET" class="flex items-center gap-3">
                 <div class="flex-1">
-                    <input type="text" name="search" value="{{ request('search') }}" class="form-input" placeholder="Search by name, email, or application number...">
+                    <input type="text" name="search" value="{{ request('search') }}" class="form-input" placeholder="Search by name, phone, or application number...">
                 </div>
                 <button type="submit" class="px-4 py-2 rounded-lg bg-primary-600 text-white text-sm font-semibold hover:bg-primary-700 transition">
                     <i class="fa-solid fa-search"></i>
@@ -104,18 +104,18 @@
                             <td class="font-bold text-primary-800">{{ $app->application_number }}</td>
                             <td>
                                 <div>
-                                    <p class="font-semibold text-primary-800">{{ $app->personalDetail->full_name ?? $app->user->name ?? '-' }}</p>
-                                    <p class="text-xs text-primary-500">{{ $app->user->phone ?? '-' }}</p>
+                                    <p class="font-semibold text-primary-800">{{ $app->personalDetail?->full_name ?? $app->user?->name ?? '-' }}</p>
+                                    <p class="text-xs text-primary-500">{{ $app->user?->phone ?? '-' }}</p>
                                 </div>
                             </td>
-                            <td>{{ $app->membershipType->name ?? '-' }}</td>
+                            <td>{{ $app->membershipType?->name ?? '-' }}</td>
                             <td>
-                                <span class="badge {{ $app->payment_status === 'successful' ? 'badge-green' : 'badge-yellow' }}">
-                                    {{ ucfirst($app->payment_status) }}
+                                <span class="badge {{ ($app->payment_status ?? '') === 'successful' ? 'badge-green' : (($app->payment_status ?? '') === 'pending' ? 'badge-yellow' : 'badge-gray') }}">
+                                    {{ ucfirst($app->payment_status ?? 'N/A') }}
                                 </span>
                             </td>
                             <td>
-                                <span class="badge {{ match($app->application_status) {
+                                <span class="badge {{ match($app->application_status ?? '') {
                                     'submitted' => 'badge-blue',
                                     'under_review' => 'badge-blue',
                                     'approved' => 'badge-green',
@@ -123,7 +123,7 @@
                                     'correction_required' => 'badge-yellow',
                                     default => 'badge-gray',
                                 } }}">
-                                    {{ ucfirst(str_replace('_', ' ', $app->application_status)) }}
+                                    {{ ucfirst(str_replace('_', ' ', $app->application_status ?? '')) }}
                                 </span>
                             </td>
                             <td>{{ $app->submitted_at?->format('d M Y') ?? '-' }}</td>
