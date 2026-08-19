@@ -45,15 +45,15 @@ class VerificationCode extends Model
         return str_pad((string) random_int(100000, 999999), 6, '0', STR_PAD_LEFT);
     }
 
-    public static function createForUser(User $user, string $email, string $phone): self
+    public static function createForUser(User $user, ?string $email, string $phone): self
     {
         return static::create([
             'user_id' => $user->id,
             'email' => $email,
             'phone' => $phone,
-            'email_code' => static::generateCode(),
+            'email_code' => $email ? static::generateCode() : null,
             'phone_code' => static::generateCode(),
-            'email_expires_at' => now()->addMinutes(10),
+            'email_expires_at' => $email ? now()->addMinutes(10) : null,
             'phone_expires_at' => now()->addMinutes(10),
             'status' => 'pending',
         ]);
@@ -81,7 +81,7 @@ class VerificationCode extends Model
 
     public function isFullyVerified(): bool
     {
-        return $this->isEmailVerified() && $this->isPhoneVerified();
+        return $this->isPhoneVerified() && ($this->email === null || $this->isEmailVerified());
     }
 
     public function verifyEmail(string $code): bool
