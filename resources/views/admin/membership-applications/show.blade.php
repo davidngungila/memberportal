@@ -7,7 +7,7 @@
     <div class="flex items-center justify-between mb-6">
         <div>
             <h1 class="text-xl font-bold text-primary-900">Application {{ $application->application_number }}</h1>
-            <p class="text-primary-600 text-sm">{{ $application->personalDetail->full_name ?? $application->user->name ?? 'Unknown Applicant' }}</p>
+            <p class="text-primary-600 text-sm">{{ $application->personalDetail->full_name ?? $application->user?->name ?? 'Unknown Applicant' }}</p>
         </div>
         <a href="{{ route('admin.membership-applications.index') }}" class="px-4 py-2 rounded-lg border border-primary-300 text-primary-700 text-sm font-semibold hover:bg-primary-50 transition">
             <i class="fa-solid fa-arrow-left"></i> Back
@@ -24,13 +24,13 @@
                 </h2>
                 <div class="grid grid-cols-2 gap-3 text-sm">
                     <div><span class="text-primary-600">Name:</span></div>
-                    <div class="font-semibold text-primary-800">{{ $application->user->name ?? '-' }}</div>
+                    <div class="font-semibold text-primary-800">{{ $application->user?->name ?? '-' }}</div>
                     <div><span class="text-primary-600">Phone (Login):</span></div>
-                    <div class="font-semibold text-primary-800">{{ $application->user->phone ?? '-' }}</div>
+                    <div class="font-semibold text-primary-800">{{ $application->user?->phone ?? '-' }}</div>
                     <div><span class="text-primary-600">Email:</span></div>
-                    <div class="font-semibold text-primary-800">{{ $application->user->email ?? 'Not provided' }}</div>
+                    <div class="font-semibold text-primary-800">{{ $application->user?->email ?? 'Not provided' }}</div>
                     <div><span class="text-primary-600">Registered:</span></div>
-                    <div class="font-semibold text-primary-800">{{ $application->user->created_at?->format('d M Y, H:i') ?? '-' }}</div>
+                    <div class="font-semibold text-primary-800">{{ $application->user?->created_at?->format('d M Y, H:i') ?? '-' }}</div>
                 </div>
             </div>
 
