@@ -216,6 +216,11 @@ class MessagingService
         return $phone;
     }
 
+    public function getSenderId(): string
+    {
+        return $this->senderId;
+    }
+
     public function isActive(): bool
     {
         if (!empty($this->apiKey)) {

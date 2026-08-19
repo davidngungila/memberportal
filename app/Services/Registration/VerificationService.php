@@ -115,10 +115,13 @@ class VerificationService
         try {
             $this->mailConfigService->configureFromDatabase();
 
-            Mail::raw("Your verification code is: {$code}\n\nThis code expires in 10 minutes.", function ($message) use ($email, $code) {
+            $senderId = config('mail.from.name', 'FEEDTAN');
+            $body = "Dear Member,\n\nYour verification code is: {$code}\n\nThis code expires in 10 minutes.\n\n Regards,\n{$senderId}";
+
+            Mail::raw($body, function ($message) use ($email, $senderId) {
                 $message->to($email)
                     ->subject('Email Verification Code')
-                    ->from(config('mail.from.address'), config('mail.from.name'));
+                    ->from(config('mail.from.address'), $senderId);
             });
 
             Log::info('Email verification code sent', ['email' => $email]);
@@ -135,10 +138,10 @@ class VerificationService
     public function sendPhoneCode(string $phone, string $code): bool
     {
         try {
-            $result = $this->messagingService->sendSms(
-                $phone,
-                "Your verification code is: {$code}. It expires in 10 minutes."
-            );
+            $senderId = $this->messagingService->getSenderId();
+            $smsText = "Dear Member,\n\nYour verification code is: {$code}\n\nThis code expires in 10 minutes.\n\nRegards,\n{$senderId}";
+
+            $result = $this->messagingService->sendSms($phone, $smsText);
 
             if ($result['success']) {
                 Log::info('Phone verification code sent', ['phone' => $phone]);
