@@ -585,11 +585,8 @@ Route::prefix('register')->name('register.')->group(function () {
     // Verification & password (authenticated, pre-registration)
     Route::middleware('auth')->group(function () {
         Route::get('/verify', [RegistrationAccountController::class, 'showVerificationForm'])->name('verify');
-        Route::post('/verify/email', [RegistrationAccountController::class, 'verifyEmail'])->name('verify.email');
         Route::post('/verify/phone', [RegistrationAccountController::class, 'verifyPhone'])->name('verify.phone');
-        Route::post('/resend/email', [RegistrationAccountController::class, 'resendEmailCode'])->name('resend.email');
         Route::post('/resend/phone', [RegistrationAccountController::class, 'resendPhoneCode'])->name('resend.phone');
-        Route::post('/resend', [RegistrationAccountController::class, 'resendCodes'])->name('resend');
         Route::get('/password', [RegistrationAccountController::class, 'showPasswordForm'])->name('password');
         Route::post('/password', [RegistrationAccountController::class, 'createPassword'])->name('password.store');
     });

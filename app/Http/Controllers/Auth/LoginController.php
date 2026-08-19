@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\LoginHistory;
+use App\Models\User;
 use App\Traits\FlashMessages;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -21,15 +22,20 @@ class LoginController extends Controller
     public function login(Request $request)
     {
         $request->validate([
-            'email' => 'required|string|email',
+            'login' => 'required|string',
             'password' => 'required|string',
             'remember' => 'nullable|boolean',
         ]);
 
-        $credentials = $request->only('email', 'password');
+        $login = $request->input('login');
+        $password = $request->input('password');
         $remember = $request->boolean('remember');
 
-        if (Auth::attempt($credentials, $remember)) {
+        $user = User::where('phone', $login)
+            ->orWhere('email', $login)
+            ->first();
+
+        if ($user && Auth::attempt(['id' => $user->id, 'password' => $password], $remember)) {
             $request->session()->regenerate();
 
             $user = Auth::user();
@@ -63,7 +69,7 @@ class LoginController extends Controller
 
         LoginHistory::create([
             'user_id' => null,
-            'email' => $request->email,
+            'email' => $login,
             'ip_address' => $request->ip(),
             'user_agent' => $request->userAgent(),
             'login_at' => now(),
@@ -71,7 +77,7 @@ class LoginController extends Controller
         ]);
 
         throw ValidationException::withMessages([
-            'email' => trans('auth.failed'),
+            'login' => trans('auth.failed'),
         ]);
     }
 

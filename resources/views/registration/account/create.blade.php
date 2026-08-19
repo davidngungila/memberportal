@@ -17,14 +17,10 @@
             <form method="POST" action="{{ route('register.store') }}">
                 @csrf
 
-                <div class="mb-4">
-                    <label for="email" class="form-label">Email Address</label>
-                    <input type="email" name="email" id="email" value="{{ old('email') }}" class="form-input" required autofocus placeholder="you@example.com">
-                </div>
-
                 <div class="mb-6">
-                    <label for="phone" class="form-label">Phone Number</label>
-                    <input type="text" name="phone" id="phone" value="{{ old('phone') }}" class="form-input" required placeholder="+255 7XX XXX XXX">
+                    <label for="phone" class="form-label">Phone Number *</label>
+                    <input type="text" name="phone" id="phone" value="{{ old('phone') }}" class="form-input" required autofocus placeholder="0712 345 678">
+                    <p class="text-xs text-primary-500 mt-1">Your phone number will be used to sign in</p>
                 </div>
 
                 <button type="submit" class="w-full py-3 rounded-xl bg-primary-600 text-white font-semibold text-sm hover:bg-primary-700 transition flex items-center justify-center gap-2">

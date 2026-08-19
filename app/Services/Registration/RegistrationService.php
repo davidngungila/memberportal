@@ -13,7 +13,6 @@ class RegistrationService
 {
     public const STAGES = [
         'account_created',
-        'email_verified',
         'phone_verified',
         'password_created',
         'membership_selected',
@@ -30,34 +29,35 @@ class RegistrationService
 
     public const STAGE_ORDER = [
         'account_created' => 0,
-        'email_verified' => 1,
-        'phone_verified' => 2,
-        'password_created' => 3,
-        'membership_selected' => 4,
-        'payment_completed' => 5,
-        'personal_details_completed' => 6,
-        'profile_completed' => 7,
-        'bank_details_completed' => 8,
-        'next_of_kin_completed' => 9,
-        'referral_completed' => 10,
-        'saving_plan_completed' => 11,
-        'ready_for_review' => 12,
-        'submitted' => 13,
+        'phone_verified' => 1,
+        'password_created' => 2,
+        'membership_selected' => 3,
+        'payment_completed' => 4,
+        'personal_details_completed' => 5,
+        'profile_completed' => 6,
+        'bank_details_completed' => 7,
+        'next_of_kin_completed' => 8,
+        'referral_completed' => 9,
+        'saving_plan_completed' => 10,
+        'ready_for_review' => 11,
+        'submitted' => 12,
     ];
 
     public function createAccount(array $data): array
     {
         return DB::transaction(function () use ($data) {
+            $phone = $data['phone'];
+
             $user = User::create([
-                'name' => $data['email'],
-                'email' => $data['email'],
-                'phone' => $data['phone'],
+                'name' => $phone,
+                'email' => null,
+                'phone' => $phone,
                 'password' => Hash::make(Str::random(12)),
                 'role' => 'member',
                 'status' => 'active',
             ]);
 
-            $verification = VerificationCode::createForUser($user, $data['email'], $data['phone']);
+            $verification = VerificationCode::createForUser($user, null, $phone);
 
             $application = MembershipApplication::create([
                 'application_number' => MembershipApplication::generateApplicationNumber(),
@@ -74,7 +74,7 @@ class RegistrationService
         });
     }
 
-    public function verifyAccount(User $user, string $emailCode, string $phoneCode): bool
+    public function verifyAccount(User $user, string $phoneCode): bool
     {
         $verification = $user->verificationCode()->latest()->first();
 
@@ -82,12 +82,10 @@ class RegistrationService
             return false;
         }
 
-        $emailVerified = $verification->verifyEmail($emailCode);
         $phoneVerified = $verification->verifyPhone($phoneCode);
 
-        if ($emailVerified && $phoneVerified) {
+        if ($phoneVerified) {
             $verification->markComplete();
-            $this->advanceStage($user, 'email_verified');
             $this->advanceStage($user, 'phone_verified');
             return true;
         }

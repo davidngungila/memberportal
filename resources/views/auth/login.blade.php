@@ -121,24 +121,24 @@
                     @csrf
 
                     <div>
-                        <label for="email" class="block text-sm font-medium text-gray-700 mb-1.5">Email Address</label>
+                        <label for="login" class="block text-sm font-medium text-gray-700 mb-1.5">Phone Number or Email</label>
                         <div class="relative">
                             <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
-                                <i class="fa-solid fa-envelope text-sm"></i>
+                                <i class="fa-solid fa-user text-sm"></i>
                             </span>
                             <input
-                                type="email"
-                                id="email"
-                                name="email"
-                                value="{{ old('email') }}"
+                                type="text"
+                                id="login"
+                                name="login"
+                                value="{{ old('login') }}"
                                 required
                                 autofocus
-                                autocomplete="email"
-                                class="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 @error('email') border-red-300 focus:ring-red-500 @enderror"
-                                placeholder="you@example.com"
+                                autocomplete="username"
+                                class="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 @error('login') border-red-300 focus:ring-red-500 @enderror"
+                                placeholder="0712 345 678 or email"
                             >
                         </div>
-                        @error('email')
+                        @error('login')
                             <p class="mt-1.5 text-sm text-red-600 flex items-center gap-1">
                                 <i class="fa-solid fa-circle-exclamation text-xs"></i>
                                 {{ $message }}

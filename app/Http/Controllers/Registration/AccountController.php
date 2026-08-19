@@ -34,29 +34,25 @@ class AccountController extends Controller
     public function createAccount(Request $request)
     {
         $validated = $request->validate([
-            'email' => 'required|email|unique:users,email',
             'phone' => 'required|string|min:10|max:15|unique:users,phone',
         ]);
 
-        $result = $this->registrationService->createAccount($validated);
+        $result = $this->registrationService->createAccount([
+            'phone' => $validated['phone'],
+        ]);
 
         $sendResult = $this->verificationService->sendVerificationCodes(
             $result['user'],
-            $validated['email'],
             $validated['phone']
         );
 
         Auth::login($result['user']);
 
         $messages = ['Account created.'];
-        if ($sendResult['email_sent'] && $sendResult['sms_sent']) {
-            $messages[] = 'Verification codes sent to your email and phone.';
-        } elseif ($sendResult['email_sent']) {
-            $messages[] = 'Email verification code sent. SMS could not be sent — please check your phone number or request a resend.';
-        } elseif ($sendResult['sms_sent']) {
-            $messages[] = 'SMS verification code sent. Email could not be sent — please check your email or request a resend.';
+        if ($sendResult['sms_sent']) {
+            $messages[] = 'Verification code sent to your phone.';
         } else {
-            $messages[] = 'Could not send verification codes. Please use the resend buttons on the verification page.';
+            $messages[] = 'Could not send verification code. Please use the resend button.';
         }
 
         return redirect()->route('register.verify')
@@ -76,49 +72,6 @@ class AccountController extends Controller
         return view('registration.account.verify', [
             'verification' => $verification,
         ]);
-    }
-
-    public function verifyEmail(Request $request)
-    {
-        $validated = $request->validate([
-            'email_code' => 'required|string|size:6',
-        ]);
-
-        $user = auth()->user();
-        $verification = $user->verificationCode()->latest()->first();
-
-        if (!$verification) {
-            return back()->with('error', 'No verification session found. Please resend the code.');
-        }
-
-        $emailVerified = $verification->verifyEmail($validated['email_code']);
-
-        if ($emailVerified) {
-            $application = $user->membershipApplications()
-                ->whereIn('application_status', ['draft', 'in_progress', 'correction_required'])
-                ->latest()
-                ->first();
-
-            if ($application) {
-                $currentOrder = RegistrationService::STAGE_ORDER[$application->current_stage] ?? -1;
-                if ($currentOrder < RegistrationService::STAGE_ORDER['email_verified']) {
-                    $application->update(['current_stage' => 'email_verified']);
-                }
-            }
-
-            return back()->with('success', 'Email verified successfully.');
-        }
-
-        $reason = '';
-        if ($verification->isEmailExpired()) {
-            $reason = 'Code has expired.';
-        } elseif ($verification->email_attempts >= 5) {
-            $reason = 'Too many attempts.';
-        } else {
-            $reason = 'Invalid code.';
-        }
-
-        return back()->with('error', "Email verification failed. {$reason}");
     }
 
     public function verifyPhone(Request $request)
@@ -168,25 +121,6 @@ class AccountController extends Controller
         return back()->with('error', "Phone verification failed. {$reason}");
     }
 
-    public function resendEmailCode(Request $request)
-    {
-        $user = auth()->user();
-        $verification = $user->verificationCode()->latest()->first();
-
-        if (!$verification || $verification->isEmailVerified()) {
-            return back()->with('error', 'No pending email verification found.');
-        }
-
-        $verification->resendEmailCode();
-        $sent = $this->verificationService->sendEmailCode($verification->email, $verification->email_code);
-
-        if ($sent) {
-            return back()->with('success', 'Email verification code resent.');
-        }
-
-        return back()->with('error', 'Failed to resend email verification code. Please try again.');
-    }
-
     public function resendPhoneCode(Request $request)
     {
         $user = auth()->user();
@@ -203,15 +137,7 @@ class AccountController extends Controller
             return back()->with('success', 'Phone verification code resent.');
         }
 
-        return back()->with('error', 'Failed to resend phone verification code. Please try again.');
-    }
-
-    public function resendCodes()
-    {
-        $user = auth()->user();
-        $result = $this->verificationService->resendCodes($user);
-
-        return back()->with($result['success'] ? 'success' : 'error', $result['message']);
+        return back()->with('error', 'Failed to resend verification code. Please try again.');
     }
 
     public function showPasswordForm()
@@ -229,7 +155,7 @@ class AccountController extends Controller
         $currentOrder = RegistrationService::STAGE_ORDER[$application->current_stage] ?? -1;
         if ($currentOrder < RegistrationService::STAGE_ORDER['phone_verified']) {
             return redirect()->route('register.verify')
-                ->with('error', 'Please verify both your email and phone first.');
+                ->with('error', 'Please verify your phone number first.');
         }
 
         return view('registration.account.password');
