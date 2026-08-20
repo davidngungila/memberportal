@@ -3,6 +3,15 @@
 @section('breadcrumb', 'My Profile › Edit')
 @section('page_title', 'Edit Profile')
 
+@php
+    $displayName = $member?->full_name ?? $personalDetails?->full_name ?? $user->name ?? '';
+    $displayEmail = $member?->email ?? $personalDetails?->email ?? '';
+    $displayPhone = $member?->phone ?? $personalDetails?->phone ?? $verification?->phone ?? '';
+    $displayAddress = $member?->residential_address ?? $personalDetails?->address ?? '';
+    $displayOccupation = $member?->occupation ?? $personalDetails?->occupation ?? '';
+    $displayEmployer = $member?->employer ?? $personalDetails?->employer ?? '';
+@endphp
+
 @section('content')
 
 <div class="max-w-4xl mx-auto space-y-6">
@@ -45,8 +54,8 @@
                 <input type="file" name="photo" accept="image/jpeg,image/png,image/jpg,image/gif" class="hidden">
               </label>
             </div>
-            <h3 class="font-bold text-primary-900 dark:text-white">{{ $user->name ?? 'Member' }}</h3>
-            <p class="text-xs text-primary-500 dark:text-primary-400 mb-4">{{ $user->email ?? 'No email' }}</p>
+            <h3 class="font-bold text-primary-900 dark:text-white">{{ $displayName ?: 'Member' }}</h3>
+            <p class="text-xs text-primary-500 dark:text-primary-400 mb-4">{{ $displayEmail ?: 'No email' }}</p>
 
             <div class="w-full pt-4 border-t border-primary-100 dark:border-dark-border">
               <p class="text-[10px] font-semibold text-primary-500 dark:text-primary-400 mb-2">PHOTO GUIDELINES</p>
@@ -87,7 +96,7 @@
               <label class="block text-xs font-bold text-primary-700 dark:text-primary-300 mb-2">Full Name <span class="text-red-500">*</span></label>
               <div class="relative">
                 <i class="fa-solid fa-user absolute left-3 top-1/2 -translate-y-1/2 text-primary-400 text-xs"></i>
-                <input type="text" name="name" required value="{{ old('name', $user->name) }}"
+                <input type="text" name="name" required value="{{ old('name', $displayName) }}"
                        class="form-input py-2.5 pl-9 pr-4 text-sm"
                        placeholder="Enter your full name">
               </div>
@@ -99,7 +108,7 @@
               <label class="block text-xs font-bold text-primary-700 dark:text-primary-300 mb-2">Email <span class="text-red-500">*</span></label>
               <div class="relative">
                 <i class="fa-solid fa-envelope absolute left-3 top-1/2 -translate-y-1/2 text-primary-400 text-xs"></i>
-                <input type="email" name="email" required value="{{ old('email', $user->email) }}"
+                <input type="email" name="email" required value="{{ old('email', $displayEmail) }}"
                        class="form-input py-2.5 pl-9 pr-4 text-sm"
                        placeholder="your@email.com">
               </div>
@@ -111,7 +120,7 @@
               <label class="block text-xs font-bold text-primary-700 dark:text-primary-300 mb-2">Phone</label>
               <div class="relative">
                 <i class="fa-solid fa-phone absolute left-3 top-1/2 -translate-y-1/2 text-primary-400 text-xs"></i>
-                <input type="text" name="phone" value="{{ old('phone', $user->phone) }}"
+                <input type="text" name="phone" value="{{ old('phone', $displayPhone) }}"
                        class="form-input py-2.5 pl-9 pr-4 text-sm"
                        placeholder="+255 123 456 789">
               </div>
@@ -123,7 +132,7 @@
               <label class="block text-xs font-bold text-primary-700 dark:text-primary-300 mb-2">Address</label>
               <div class="relative">
                 <i class="fa-solid fa-location-dot absolute left-3 top-1/2 -translate-y-1/2 text-primary-400 text-xs"></i>
-                <input type="text" name="address" value="{{ old('address', $user->address) }}"
+                <input type="text" name="address" value="{{ old('address', $displayAddress) }}"
                        class="form-input py-2.5 pl-9 pr-4 text-sm"
                        placeholder="Your address">
               </div>
@@ -135,7 +144,7 @@
               <label class="block text-xs font-bold text-primary-700 dark:text-primary-300 mb-2">Occupation</label>
               <div class="relative">
                 <i class="fa-solid fa-briefcase absolute left-3 top-1/2 -translate-y-1/2 text-primary-400 text-xs"></i>
-                <input type="text" name="occupation" value="{{ old('occupation', $user->occupation) }}"
+                <input type="text" name="occupation" value="{{ old('occupation', $displayOccupation) }}"
                        class="form-input py-2.5 pl-9 pr-4 text-sm"
                        placeholder="Your occupation">
               </div>
@@ -147,7 +156,7 @@
               <label class="block text-xs font-bold text-primary-700 dark:text-primary-300 mb-2">Employer</label>
               <div class="relative">
                 <i class="fa-solid fa-building absolute left-3 top-1/2 -translate-y-1/2 text-primary-400 text-xs"></i>
-                <input type="text" name="employer" value="{{ old('employer', $user->employer) }}"
+                <input type="text" name="employer" value="{{ old('employer', $displayEmployer) }}"
                        class="form-input py-2.5 pl-9 pr-4 text-sm"
                        placeholder="Your employer">
               </div>

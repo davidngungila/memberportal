@@ -14,13 +14,13 @@
     $status = $user->status ?? 'Active';
     $statusActive = strtolower($status) === 'active';
 
-    $fullNameVal = $user->name ?? '—';
-    $genderVal = $user->gender ?? '—';
-    $phoneVal = $user->phone ?? '—';
-    $emailVal = $user->email ?? '—';
-    $addressVal = $user->address ?? '—';
-    $occupationVal = $user->occupation ?? '—';
-    $employerVal = $user->employer ?? '—';
+    $fullNameVal = $member?->full_name ?? $personalDetails?->full_name ?? $fullName ?? '—';
+    $genderVal = $member?->gender ?? $personalDetails?->gender ?? '—';
+    $phoneVal = $member?->phone ?? $personalDetails?->phone ?? $verification?->phone ?? '—';
+    $emailVal = $member?->email ?? $personalDetails?->email ?? '—';
+    $addressVal = $member?->residential_address ?? $personalDetails?->address ?? '—';
+    $occupationVal = $member?->occupation ?? $personalDetails?->occupation ?? '—';
+    $employerVal = $member?->employer ?? $personalDetails?->employer ?? '—';
 
     $branchVal = $user->branch ?? '—';
     $regDateVal = optional($user->created_at)->format('Y-m-d') ?? '—';

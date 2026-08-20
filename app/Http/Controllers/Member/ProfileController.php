@@ -32,14 +32,25 @@ class ProfileController extends Controller
             $swfBalance = 0;
         }
 
-        $fullName = $user->name;
+        $member = $user->member;
+        $application = $user->membershipApplications()
+            ->whereIn('application_status', ['draft', 'in_progress', 'submitted', 'under_review', 'correction_required'])
+            ->latest()
+            ->first();
+        $personalDetails = $application?->personalDetail;
+        $verification = $user->verificationCode()->latest()->first();
+
+        $fullName = $member?->name ?? $user->name;
         $initials = $this->extractInitials($fullName);
 
         return view('member.profile.show', compact(
             'user',
             'initials',
             'fullName',
-            'swfBalance'
+            'swfBalance',
+            'member',
+            'personalDetails',
+            'verification',
         ));
     }
 
@@ -54,11 +65,22 @@ class ProfileController extends Controller
 
         $user = Auth::user();
 
-        $fullName = $user->name;
+        $member = $user->member;
+        $application = $user->membershipApplications()
+            ->whereIn('application_status', ['draft', 'in_progress', 'submitted', 'under_review', 'correction_required'])
+            ->latest()
+            ->first();
+        $personalDetails = $application?->personalDetail;
+        $verification = $user->verificationCode()->latest()->first();
+
+        $fullName = $member?->full_name ?? $personalDetails?->full_name ?? $user->name;
 
         return view('member.profile.edit', compact(
             'user',
-            'fullName'
+            'fullName',
+            'member',
+            'personalDetails',
+            'verification',
         ));
     }
 
