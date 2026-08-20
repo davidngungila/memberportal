@@ -8,22 +8,13 @@ return new class extends Migration
     public function up(): void
     {
         DB::table('members')
-            ->where('status', 'Active')
+            ->whereNull('status')
+            ->orWhere('status', '')
             ->update(['status' => 'active']);
-
-        DB::table('members')
-            ->where('status', 'Pending')
-            ->update(['status' => 'pending']);
     }
 
     public function down(): void
     {
-        DB::table('members')
-            ->where('status', 'active')
-            ->update(['status' => 'Active']);
-
-        DB::table('members')
-            ->where('status', 'pending')
-            ->update(['status' => 'Pending']);
+        // No rollback needed
     }
 };
