@@ -25,7 +25,6 @@ class ProfileController extends Controller
 
         $user = Auth::user();
         
-        // Get SWF data from database
         $swfMember = $user->swfMember;
         if ($swfMember) {
             $swfBalance = $swfMember->total_contributions - $swfMember->total_benefits_received;
@@ -70,9 +69,14 @@ class ProfileController extends Controller
         $user = Auth::user();
         $member = $user->member;
 
+        if (!$member) {
+            $this->error('No member profile found. Please contact support.');
+            return redirect()->back();
+        }
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', 'unique:members,email,'.$member->id],
+            'email' => ['required', 'email', 'max:255', 'unique:members,email,' . $member->id],
             'phone' => ['nullable', 'string', 'max:20'],
             'address' => ['nullable', 'string', 'max:500'],
             'occupation' => ['nullable', 'string', 'max:255'],
@@ -82,17 +86,14 @@ class ProfileController extends Controller
             'new_password' => ['nullable', 'string', 'min:8', 'confirmed'],
         ]);
 
-        // Handle password change
         if (!empty($validated['new_password'])) {
             if (!Hash::check($validated['current_password'], $user->password)) {
                 $this->error('Current password is incorrect.');
                 return redirect()->back();
             }
             $user->password = Hash::make($validated['new_password']);
-            $user->save();
         }
 
-        // Handle photo upload
         if ($request->hasFile('photo')) {
             $file = $request->file('photo');
             $fileName = time() . '_' . $file->getClientOriginalName();
@@ -105,7 +106,6 @@ class ProfileController extends Controller
             $member->profile_photo = $filePath;
         }
 
-        // Handle photo removal
         if ($request->input('remove_photo')) {
             if ($member->profile_photo && Storage::disk('public')->exists($member->profile_photo)) {
                 Storage::disk('public')->delete($member->profile_photo);
@@ -113,11 +113,9 @@ class ProfileController extends Controller
             $member->profile_photo = null;
         }
 
-        // Update user name
         $user->name = $validated['name'];
         $user->save();
 
-        // Update member fields
         $member->email = $validated['email'];
         $member->phone = $validated['phone'] ?? $member->phone;
         $member->residential_address = $validated['address'] ?? $member->residential_address;
