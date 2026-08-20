@@ -43,6 +43,27 @@ class Member extends Model
         'profile_photo',
     ];
 
+    const STATUSES = [
+        'pending',
+        'active',
+        'inactive',
+        'suspended',
+        'expired',
+        'rejected',
+        'cancelled',
+    ];
+
+    protected static function boot(): void
+    {
+        parent::boot();
+
+        static::saving(function (Member $member) {
+            if ($member->status && !in_array($member->status, self::STATUSES)) {
+                throw new \InvalidArgumentException("Invalid status: {$member->status}. Must be one of: " . implode(', ', self::STATUSES));
+            }
+        });
+    }
+
     protected $casts = [
         'registration_date' => 'date',
         'date_of_birth' => 'date',

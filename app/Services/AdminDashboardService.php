@@ -93,6 +93,18 @@ class AdminDashboardService
                 'label' => 'Pending',
                 'class' => 'badge-yellow',
             ],
+            'expired' => [
+                'label' => 'Expired',
+                'class' => 'badge-orange',
+            ],
+            'rejected' => [
+                'label' => 'Rejected',
+                'class' => 'badge-red',
+            ],
+            'cancelled' => [
+                'label' => 'Cancelled',
+                'class' => 'badge-gray',
+            ],
             default => [
                 'label' => $status ? ucfirst($status) : 'Unknown',
                 'class' => 'badge-gray',

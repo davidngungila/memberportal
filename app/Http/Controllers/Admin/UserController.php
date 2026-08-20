@@ -535,7 +535,7 @@ class UserController extends Controller
                 if (isset($validated['registration_date'])) {
                     $memberUpdateData['registration_date'] = $validated['registration_date'];
                 }
-                if (isset($validated['status'])) {
+                if (isset($validated['status']) && in_array($validated['status'], \App\Models\Member::STATUSES)) {
                     $memberUpdateData['status'] = $validated['status'];
                 }
 
