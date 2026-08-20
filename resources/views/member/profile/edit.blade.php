@@ -6,7 +6,7 @@
 @php
     $displayName = $member?->full_name ?? $personalDetails?->full_name ?? $user->name ?? '';
     $displayEmail = $member?->email ?? $personalDetails?->email ?? '';
-    $displayPhone = $member?->phone ?? $personalDetails?->phone ?? $verification?->phone ?? '';
+    $displayPhone = $verification?->phone ?? $member?->phone ?? $personalDetails?->phone ?? '';
     $displayAddress = $member?->residential_address ?? $personalDetails?->address ?? '';
     $displayOccupation = $member?->occupation ?? $personalDetails?->occupation ?? '';
     $displayEmployer = $member?->employer ?? $personalDetails?->employer ?? '';

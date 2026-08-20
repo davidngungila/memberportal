@@ -8,7 +8,7 @@
         return 'TSh ' . number_format((float)$val, 2, '.', ',');
     }
 
-    $displayName = $fullName ?? $user->name ?? 'Member User';
+    $displayName = $fullName ?? $member?->full_name ?? $personalDetails?->full_name ?? 'Member';
     $displayInitials = $initials ?? strtoupper(substr($displayName, 0, 1));
     $displayMemberNumber = $user->membercode ?? 'FTN-00001';
     $status = $user->status ?? 'Active';
@@ -16,7 +16,7 @@
 
     $fullNameVal = $member?->full_name ?? $personalDetails?->full_name ?? $fullName ?? '—';
     $genderVal = $member?->gender ?? $personalDetails?->gender ?? '—';
-    $phoneVal = $member?->phone ?? $personalDetails?->phone ?? $verification?->phone ?? '—';
+    $phoneVal = $verification?->phone ?? $member?->phone ?? $personalDetails?->phone ?? '—';
     $emailVal = $member?->email ?? $personalDetails?->email ?? '—';
     $addressVal = $member?->residential_address ?? $personalDetails?->address ?? '—';
     $occupationVal = $member?->occupation ?? $personalDetails?->occupation ?? '—';

@@ -40,7 +40,7 @@ class ProfileController extends Controller
         $personalDetails = $application?->personalDetail;
         $verification = $user->verificationCode()->latest()->first();
 
-        $fullName = $member?->name ?? $user->name;
+        $fullName = $member?->full_name ?? $personalDetails?->full_name ?? null;
         $initials = $this->extractInitials($fullName);
 
         return view('member.profile.show', compact(
@@ -73,7 +73,7 @@ class ProfileController extends Controller
         $personalDetails = $application?->personalDetail;
         $verification = $user->verificationCode()->latest()->first();
 
-        $fullName = $member?->full_name ?? $personalDetails?->full_name ?? $user->name;
+        $fullName = $member?->full_name ?? $personalDetails?->full_name ?? null;
 
         return view('member.profile.edit', compact(
             'user',
