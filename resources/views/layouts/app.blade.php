@@ -219,7 +219,24 @@ body { color: #064e3b; background: #f0fdf4; }
 
 @php
     $authUser = auth()->check() ? auth()->user() : null;
-    $userData = $user ?? ($authUser ? array_merge($authUser->only(['id', 'name', 'role', 'membercode', 'branch']), ['email' => $authUser->email, 'phone' => $authUser->phone]) : null);
+    if ($authUser) {
+        $member = $authUser->member;
+        $application = $authUser->membershipApplications()
+            ->whereIn('application_status', ['draft', 'in_progress', 'submitted', 'under_review', 'correction_required'])
+            ->latest()
+            ->first();
+        $personalDetails = $application?->personalDetail;
+        $verification = $authUser->verificationCode()->latest()->first();
+        $displayName = $member?->full_name ?? $personalDetails?->full_name ?? 'Member';
+        $displayPhone = $verification?->phone ?? $member?->phone ?? $personalDetails?->phone ?? $authUser->phone;
+        $userData = array_merge($authUser->only(['id', 'role', 'membercode', 'branch']), [
+            'name' => $displayName,
+            'email' => $member?->email ?? $personalDetails?->email ?? $authUser->email,
+            'phone' => $displayPhone,
+        ]);
+    } else {
+        $userData = $user ?? null;
+    }
 @endphp
 
 <script>

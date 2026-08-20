@@ -31,7 +31,7 @@
                 </div>
                 <div>
                     <h2 class="text-2xl lg:text-3xl font-extrabold text-primary-900 dark:text-white leading-tight">
-                        Welcome back, {{ auth()->user()->name }}!
+                        Welcome back, {{ $userData['name'] ?? 'Member' }}!
                     </h2>
                     <p class="mt-1.5 text-sm text-primary-700 dark:text-primary-300">
                         Here's a snapshot of your accounts as of {{ now()->format('F j, Y') }}.
