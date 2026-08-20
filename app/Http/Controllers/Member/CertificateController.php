@@ -34,19 +34,28 @@ class CertificateController extends Controller
     public function getMembershipCertificate()
     {
         $user = auth()->user();
+        $member = $user->member;
+        $application = $user->membershipApplications()
+            ->whereIn('application_status', ['draft', 'in_progress', 'submitted', 'under_review', 'correction_required'])
+            ->latest()
+            ->first();
+        $personalDetails = $application?->personalDetail;
+
+        $displayName = $member?->full_name ?? $personalDetails?->full_name ?? $user->name;
+        $memberNumber = $member?->membercode ?? $user->membercode ?? 'N/A';
         
         // Generate unique verification code
-        $verificationCode = 'CERT-' . strtoupper($user->membercode) . '-' . Str::random(8);
+        $verificationCode = 'CERT-' . strtoupper((string) $memberNumber) . '-' . Str::random(8);
         
         // Generate verification URL
         $verificationUrl = url('/verify-certificate/' . $verificationCode);
         
         return response()->json([
-            'name' => $user->name,
-            'member_number' => $user->membercode,
-            'registration_date' => $user->created_at ? $user->created_at->format('Y-m-d') : 'N/A',
-            'branch' => $user->branch ?? 'N/A',
-                'status' => $user->status ?? 'active',
+            'name' => $displayName,
+            'member_number' => $memberNumber,
+            'registration_date' => $member?->registration_date?->format('Y-m-d') ?? $user->created_at?->format('Y-m-d') ?? 'N/A',
+            'branch' => $member?->branch ?? $user->branch ?? 'N/A',
+            'status' => $member?->status ?? $user->status ?? 'active',
             'organization' => 'FEED TAN CMG SACCO',
             'issue_date' => now()->format('m/d/Y'),
             'verification_code' => $verificationCode,
