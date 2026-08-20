@@ -50,8 +50,6 @@ class RegistrationService
 
             $user = User::create([
                 'name' => $phone,
-                'email' => null,
-                'phone' => $phone,
                 'password' => Hash::make(Str::random(12)),
                 'role' => 'member',
                 'status' => 'active',

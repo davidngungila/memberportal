@@ -34,7 +34,7 @@ class AccountController extends Controller
     public function createAccount(Request $request)
     {
         $validated = $request->validate([
-            'phone' => 'required|string|min:10|max:15|unique:users,phone',
+            'phone' => 'required|string|min:10|max:15|unique:verification_codes,phone',
         ]);
 
         $result = $this->registrationService->createAccount([
