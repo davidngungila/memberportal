@@ -30,6 +30,17 @@ class DepositController extends Controller
         $user = Auth::user();
         $memberNumber = $user->membercode;
 
+        if (!$memberNumber) {
+            return view('member.deposits.index', [
+                'deposits' => [],
+                'processedDeposits' => [],
+                'totalInvested' => 0,
+                'totalValue' => 0,
+                'totalInterest' => 0,
+                'maturingSoon' => 0,
+            ]);
+        }
+
         $deposits = $this->repository->getMemberDeposits($memberNumber);
 
         $processedDeposits = array_map(function (array $dep): array {
@@ -99,6 +110,10 @@ class DepositController extends Controller
 
         $user = Auth::user();
         $memberNumber = $user->membercode;
+
+        if (!$memberNumber) {
+            abort(404, 'Deposit not found');
+        }
 
         $deposits = $this->repository->getMemberDeposits($memberNumber);
         $deposit = collect($deposits)->firstWhere('certificate_number', $certificateNumber);

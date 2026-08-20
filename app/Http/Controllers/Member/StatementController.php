@@ -48,6 +48,16 @@ class StatementController extends Controller
         $user = Auth::user();
         $memberNumber = $user->membercode;
 
+        if (!$memberNumber) {
+            return view('member.statements.index', [
+                'previews' => [],
+                'statementTypes' => self::VALID_TYPES,
+                'typeLabels' => self::TYPE_LABELS,
+                'fromDate' => $request->input('from', date('Y-m-01', strtotime('-3 months'))),
+                'toDate' => $request->input('to', date('Y-m-d')),
+            ]);
+        }
+
         $fromDate = $request->input('from', date('Y-m-01', strtotime('-3 months')));
         $toDate = $request->input('to', date('Y-m-d'));
 
@@ -91,6 +101,10 @@ class StatementController extends Controller
 
         $user = Auth::user();
         $memberNumber = $user->membercode;
+
+        if (!$memberNumber) {
+            abort(404, 'Member not found');
+        }
 
         $fromDate = $request->input('from', date('Y-m-01', strtotime('-3 months')));
         $toDate = $request->input('to', date('Y-m-d'));

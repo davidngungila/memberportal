@@ -30,6 +30,23 @@ class SavingController extends Controller
         $user = Auth::user();
         $memberNumber = $user->membercode;
 
+        if (!$memberNumber) {
+            return view('member.savings.index', [
+                'savings' => [],
+                'balance' => 0,
+                'interestEarned' => 0,
+                'runningBalance' => 0,
+                'deposits' => [],
+                'withdrawals' => [],
+                'ledger' => [],
+                'ledgerPaginated' => new \Illuminate\Pagination\LengthAwarePaginator([], 0, 20, 1),
+                'depositsPaginated' => new \Illuminate\Pagination\LengthAwarePaginator([], 0, 20, 1),
+                'withdrawalsPaginated' => new \Illuminate\Pagination\LengthAwarePaginator([], 0, 20, 1),
+                'totalDeposited' => 0,
+                'totalWithdrawn' => 0,
+            ]);
+        }
+
         $savings = $this->repository->getMemberSavings($memberNumber);
 
         $balance = (float) ($savings['balance'] ?? 0);
