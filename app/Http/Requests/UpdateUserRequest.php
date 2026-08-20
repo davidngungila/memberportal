@@ -46,7 +46,12 @@ class UpdateUserRequest extends FormRequest
         
         return [
             'name' => ['required'],
-            'email' => ['required', Rule::unique('users', 'email')->ignore($userId ?? 0)],
+            'email' => ['required', function ($attribute, $value, $fail) use ($userId) {
+                $member = \App\Models\Member::where('email', $value)->where('user_id', '!=', $userId)->first();
+                if ($member) {
+                    $fail('The email has already been taken.');
+                }
+            }],
             'password' => ['nullable', 'confirmed', 'min:8'],
             'role' => ['required'],
             'membercode' => ['nullable', Rule::unique('users', 'membercode')->ignore($userId ?? 0)],

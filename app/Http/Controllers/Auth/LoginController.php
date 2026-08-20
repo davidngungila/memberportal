@@ -31,9 +31,14 @@ class LoginController extends Controller
         $password = $request->input('password');
         $remember = $request->boolean('remember');
 
-        $user = User::where('phone', $login)
-            ->orWhere('email', $login)
-            ->first();
+        // Find user by email or phone through the members table
+        $member = \App\Models\Member::where('email', $login)->orWhere('phone', $login)->first();
+        $user = $member?->user;
+
+        // If no member found, try users table by name (for admin users without member records)
+        if (!$user) {
+            $user = User::where('name', $login)->first();
+        }
 
         if ($user && Auth::attempt(['id' => $user->id, 'password' => $password], $remember)) {
             $request->session()->regenerate();

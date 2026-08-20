@@ -53,11 +53,11 @@
                  x-transition:leave-start="opacity-100 scale-100"
                  x-transition:leave-end="opacity-0 scale-95"
                  class="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 max-h-60 overflow-y-auto">
-              <template x-for="member in filteredMembers" :key="member.member_number">
+               <template x-for="member in filteredMembers" :key="member.membercode">
                 <div @click="selectMember(member)" 
                      class="px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-100 dark:border-gray-700 last:border-0">
                   <div class="font-semibold text-sm text-primary-900 dark:text-white" x-text="member.name"></div>
-                  <div class="text-xs text-primary-500 dark:text-primary-400" x-text="member.member_number"></div>
+                   <div class="text-xs text-primary-500 dark:text-primary-400" x-text="member.membercode"></div>
                 </div>
               </template>
             </div>
@@ -278,15 +278,15 @@
         } else {
           this.filteredMembers = this.allMembers.filter(member => 
             member.name.toLowerCase().includes(search) ||
-            member.member_number.toLowerCase().includes(search)
+             member.membercode.toLowerCase().includes(search)
           );
         }
         this.showMemberDropdown = true;
       },
       
       selectMember(member) {
-        this.form.member_number = member.member_number;
-        this.memberSearch = member.name + ' (' + member.member_number + ')';
+         this.form.member_number = member.membercode;
+         this.memberSearch = member.name + ' (' + member.membercode + ')';
         this.showMemberDropdown = false;
       },
       

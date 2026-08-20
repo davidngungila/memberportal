@@ -27,26 +27,22 @@ class UpdateBasicInfoRequest extends FormRequest
             }
         }
         
-        $profileId = null;
+        $memberId = null;
         if ($userId) {
-            $profile = \App\Models\MemberProfile::where('user_id', $userId)->first();
-            if ($profile) {
-                $profileId = $profile->id;
+            $member = \App\Models\Member::where('user_id', $userId)->first();
+            if ($member) {
+                $memberId = $member->id;
             }
         }
 
         return [
-            'member_type_id' => 'nullable|exists:member_types,id',
-            'first_name' => 'nullable|string|max:255',
-            'middle_name' => 'nullable|string|max:255',
-            'last_name' => 'nullable|string|max:255',
-            'email_address' => 'nullable|email|max:255|unique:users,email,' . $userId,
+            'membership_type_id' => 'nullable|exists:member_types,id',
+            'full_name' => 'nullable|string|max:255',
+            'email' => 'nullable|email|max:255|unique:members,email,' . $memberId,
             'gender' => 'nullable|in:male,female,other',
             'date_of_birth' => 'nullable|date|before:today',
             'national_id' => 'nullable|string|max:50',
-            'passport_driving_license' => 'nullable|string|max:50',
             'registration_date' => 'nullable|date',
-            'status' => 'nullable|in:active,pending,suspended',
             'profile_photo' => 'nullable|image|max:5120',
         ];
     }

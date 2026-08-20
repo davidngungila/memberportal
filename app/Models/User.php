@@ -19,20 +19,11 @@ class User extends Authenticatable
 
     protected $fillable = [
         'name',
-        'email',
         'password',
         'role',
         'membercode',
-        'phone',
-        'gender',
-        'address',
-        'occupation',
-        'employer',
         'branch',
-        'photo',
         'status',
-        'member_type_id',
-        'registration_date',
         'email_verified_at',
     ];
 
@@ -46,7 +37,6 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
-            'registration_date' => 'date',
         ];
     }
 
@@ -68,16 +58,6 @@ class User extends Authenticatable
     public function notifications(): MorphMany
     {
         return $this->morphMany(DatabaseNotification::class, 'notifiable');
-    }
-
-    public function memberType()
-    {
-        return $this->belongsTo(MemberType::class);
-    }
-
-    public function memberProfile()
-    {
-        return $this->hasOne(MemberProfile::class);
     }
 
     public function swfMember()
@@ -122,9 +102,54 @@ class User extends Authenticatable
         return $this->hasOne(VerificationCode::class)->latest();
     }
 
+    public function getEmailAttribute()
+    {
+        return $this->member?->email;
+    }
+
+    public function getPhoneAttribute()
+    {
+        return $this->member?->phone;
+    }
+
+    public function getGenderAttribute()
+    {
+        return $this->member?->gender;
+    }
+
+    public function getOccupationAttribute()
+    {
+        return $this->member?->occupation;
+    }
+
+    public function getEmployerAttribute()
+    {
+        return $this->member?->employer;
+    }
+
+    public function getAddressAttribute()
+    {
+        return $this->member?->residential_address;
+    }
+
+    public function getPhotoAttribute()
+    {
+        return $this->member?->profile_photo;
+    }
+
+    public function getRegistrationDateAttribute()
+    {
+        return $this->member?->registration_date;
+    }
+
+    public function getMemberTypeIdAttribute()
+    {
+        return $this->member?->membership_type_id;
+    }
+
     public function isApprovedMember(): bool
     {
-        return $this->member !== null && $this->member->status === 'Active';
+        return $this->member !== null && $this->member->registration_status === 'registered';
     }
 
     public function hasActiveApplication(): bool

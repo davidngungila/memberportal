@@ -57,7 +57,7 @@
                 <div @click="selectMember(member)" 
                      class="px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-100 dark:border-gray-700 last:border-0">
                   <div class="font-semibold text-sm text-primary-900 dark:text-white" x-text="member.full_name"></div>
-                  <div class="text-xs text-primary-500 dark:text-primary-400" x-text="member.member_number"></div>
+                   <div class="text-xs text-primary-500 dark:text-primary-400" x-text="member.membercode"></div>
                 </div>
               </template>
             </div>

@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('breadcrumb', 'Members \u203A Edit Member')
+@section('breadcrumb', 'Members › Edit Member')
 @section('page_title', 'Edit Member: ' . $user->name)
 
 @section('content')
@@ -15,8 +15,8 @@
     </a>
     <div class="flex items-center gap-3 flex-1">
       <div class="relative">
-        @if($user->memberProfile && $user->memberProfile->passport_photo)
-          <img src="{{ asset('storage/' . $user->memberProfile->passport_photo) }}" 
+        @if($user->member && $user->member->photo)
+          <img src="{{ asset('storage/' . $user->member->photo) }}" 
                alt="{{ $user->name }}" 
                class="w-12 h-12 rounded-2xl object-cover shadow-md"
                onerror="this.src='{{ asset('images/default-avatar.png') }}'">
@@ -30,9 +30,9 @@
         <h2 class="font-bold text-lg truncate" :class="darkMode ? 'text-white' : 'text-primary-900'">{{ $user->name }}</h2>
         <p class="text-xs mt-0.5 truncate" :class="darkMode ? 'text-primary-400' : 'text-primary-600'">{{ $user->email }}</p>
       </div>
-      @if($user->memberProfile)
+      @if($user->status)
         <span class="px-3 py-1 rounded-full text-xs font-bold bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300">
-          {{ $user->memberProfile->status }}
+          {{ ucfirst($user->status) }}
         </span>
       @endif
     </div>
@@ -79,76 +79,31 @@
             @csrf
             @method('PUT')
             <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-              @if($user->memberProfile)
+              @if($user->member)
                 <div class="md:col-span-3">
-                  <label class="form-label uppercase tracking-wider text-primary-700 dark:text-primary-300">Profile Photo</label>
-                  <div class="flex items-center gap-4">
-                    @if($user->memberProfile->passport_photo)
-                      <img src="{{ asset('storage/' . $user->memberProfile->passport_photo) }}" 
-                           alt="{{ $user->name }}" 
-                           class="w-20 h-20 rounded-xl object-cover shadow-md"
-                           onerror="this.style.display='none'">
-                    @endif
-                    <input type="file" name="profile_photo" accept="image/*" class="form-input flex-1">
-                  </div>
-                </div>
-                <div class="md:col-span-3">
-                  <label class="form-label uppercase tracking-wider text-primary-700 dark:text-primary-300">Member Type *</label>
-                  <select name="member_type_id" class="form-input">
-                    <option value="">Select member type...</option>
-                    @foreach($memberTypes as $type)
-                      <option value="{{ $type->id }}" {{ $user->member_type_id == $type->id ? 'selected' : '' }}>{{ $type->name }} - {{ $type->code }}</option>
-                    @endforeach
-                  </select>
-                </div>
-                <div>
-                  <label class="form-label uppercase tracking-wider text-primary-700 dark:text-primary-300">First Name *</label>
-                  <input type="text" name="first_name" value="{{ $user->memberProfile->first_name }}" class="form-input">
-                </div>
-                <div>
-                  <label class="form-label uppercase tracking-wider text-primary-700 dark:text-primary-300">Middle Name</label>
-                  <input type="text" name="middle_name" value="{{ $user->memberProfile->middle_name }}" class="form-input">
-                </div>
-                <div>
-                  <label class="form-label uppercase tracking-wider text-primary-700 dark:text-primary-300">Last Name *</label>
-                  <input type="text" name="last_name" value="{{ $user->memberProfile->last_name }}" class="form-input">
-                </div>
-                <div class="md:col-span-3">
-                  <label class="form-label uppercase tracking-wider text-primary-700 dark:text-primary-300">Email Address *</label>
-                  <input type="email" name="email_address" value="{{ $user->email }}" class="form-input">
+                  <label class="form-label uppercase tracking-wider text-primary-700 dark:text-primary-300">Full Name</label>
+                  <input type="text" value="{{ $user->name }}" readonly class="form-input bg-primary-50 dark:bg-primary-900/30 cursor-not-allowed">
                 </div>
                 <div>
                   <label class="form-label uppercase tracking-wider text-primary-700 dark:text-primary-300">Gender *</label>
                   <select name="gender" class="form-input">
                     <option value="">Select gender...</option>
-                    <option value="male" {{ $user->memberProfile->gender === 'male' ? 'selected' : '' }}>Male</option>
-                    <option value="female" {{ $user->memberProfile->gender === 'female' ? 'selected' : '' }}>Female</option>
-                    <option value="other" {{ $user->memberProfile->gender === 'other' ? 'selected' : '' }}>Other</option>
+                    <option value="male" {{ $user->member->gender === 'male' ? 'selected' : '' }}>Male</option>
+                    <option value="female" {{ $user->member->gender === 'female' ? 'selected' : '' }}>Female</option>
+                    <option value="other" {{ $user->member->gender === 'other' ? 'selected' : '' }}>Other</option>
                   </select>
                 </div>
                 <div>
                   <label class="form-label uppercase tracking-wider text-primary-700 dark:text-primary-300">Date of Birth</label>
-                  <input type="date" name="date_of_birth" value="{{ $user->memberProfile->date_of_birth ? $user->memberProfile->date_of_birth->format('Y-m-d') : '' }}" class="form-input">
+                  <input type="date" name="date_of_birth" value="{{ $user->member->date_of_birth ? $user->member->date_of_birth->format('Y-m-d') : '' }}" class="form-input">
                 </div>
                 <div>
                   <label class="form-label uppercase tracking-wider text-primary-700 dark:text-primary-300">National ID (NIDA)</label>
-                  <input type="text" name="national_id" value="{{ $user->memberProfile->national_id }}" class="form-input font-mono">
-                </div>
-                <div>
-                  <label class="form-label uppercase tracking-wider text-primary-700 dark:text-primary-300">Passport/Driving License</label>
-                  <input type="text" name="passport_driving_license" value="{{ $user->memberProfile->passport_driving_license }}" class="form-input">
+                  <input type="text" name="national_id" value="{{ $user->member->national_id ?? '' }}" class="form-input font-mono">
                 </div>
                 <div>
                   <label class="form-label uppercase tracking-wider text-primary-700 dark:text-primary-300">Registration Date</label>
-                  <input type="date" name="registration_date" value="{{ $user->memberProfile->registration_date ? $user->memberProfile->registration_date->format('Y-m-d') : '' }}" class="form-input">
-                </div>
-                <div>
-                  <label class="form-label uppercase tracking-wider text-primary-700 dark:text-primary-300">Status</label>
-                  <select name="status" required class="form-input">
-                    <option value="active" {{ $user->memberProfile->status === 'active' ? 'selected' : '' }}>Active</option>
-                    <option value="pending" {{ $user->memberProfile->status === 'pending' ? 'selected' : '' }}>Pending</option>
-                    <option value="suspended" {{ $user->memberProfile->status === 'suspended' ? 'selected' : '' }}>Suspended</option>
-                  </select>
+                  <input type="date" name="registration_date" value="{{ $user->member->registration_date ? $user->member->registration_date->format('Y-m-d') : '' }}" class="form-input">
                 </div>
               @else
                 <div class="md:col-span-3">
@@ -181,31 +136,15 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
                 <label class="form-label uppercase tracking-wider text-primary-700 dark:text-primary-300">Phone Number</label>
-                <input type="text" name="phone_number" value="{{ $user->memberProfile->phone_number ?? '' }}" class="form-input">
+                <input type="text" name="phone" value="{{ $user->member->phone ?? '' }}" class="form-input">
               </div>
               <div>
-                <label class="form-label uppercase tracking-wider text-primary-700 dark:text-primary-300">Alternative Phone</label>
-                <input type="text" name="alternative_phone" value="{{ $user->memberProfile->alternative_phone ?? '' }}" class="form-input">
-              </div>
-              <div>
-                <label class="form-label uppercase tracking-wider text-primary-700 dark:text-primary-300">Region</label>
-                <input type="text" name="region" value="{{ $user->memberProfile->region ?? '' }}" class="form-input">
-              </div>
-              <div>
-                <label class="form-label uppercase tracking-wider text-primary-700 dark:text-primary-300">District</label>
-                <input type="text" name="district" value="{{ $user->memberProfile->district ?? '' }}" class="form-input">
-              </div>
-              <div>
-                <label class="form-label uppercase tracking-wider text-primary-700 dark:text-primary-300">Ward</label>
-                <input type="text" name="ward" value="{{ $user->memberProfile->ward ?? '' }}" class="form-input">
-              </div>
-              <div>
-                <label class="form-label uppercase tracking-wider text-primary-700 dark:text-primary-300">Street/Village</label>
-                <input type="text" name="street_village" value="{{ $user->memberProfile->street_village ?? '' }}" class="form-input">
+                <label class="form-label uppercase tracking-wider text-primary-700 dark:text-primary-300">Email Address</label>
+                <input type="email" name="email" value="{{ $user->member->email ?? $user->email }}" class="form-input">
               </div>
               <div class="md:col-span-2">
-                <label class="form-label uppercase tracking-wider text-primary-700 dark:text-primary-300">Physical Address</label>
-                <textarea name="physical_address" rows="2" class="form-input">{{ $user->memberProfile->physical_address ?? '' }}</textarea>
+                <label class="form-label uppercase tracking-wider text-primary-700 dark:text-primary-300">Residential Address</label>
+                <textarea name="residential_address" rows="2" class="form-input">{{ $user->member->residential_address ?? '' }}</textarea>
               </div>
             </div>
             <div class="flex justify-end">
@@ -227,45 +166,12 @@
             @method('PUT')
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
-                <label class="form-label uppercase tracking-wider text-primary-700 dark:text-primary-300">Branch</label>
-                <select name="branch_id" class="form-input">
-                  <option value="">Select branch...</option>
-                  <option value="1" {{ $user->memberProfile->branch_id == 1 ? 'selected' : '' }}>Main Branch</option>
-                  <option value="2" {{ $user->memberProfile->branch_id == 2 ? 'selected' : '' }}>Branch A</option>
-                  <option value="3" {{ $user->memberProfile->branch_id == 3 ? 'selected' : '' }}>Branch B</option>
-                </select>
-              </div>
-              <div>
-                <label class="form-label uppercase tracking-wider text-primary-700 dark:text-primary-300">Membership Category</label>
-                <input type="text" name="membership_category" value="{{ $user->memberProfile->membership_category ?? '' }}" class="form-input">
-              </div>
-              <div>
                 <label class="form-label uppercase tracking-wider text-primary-700 dark:text-primary-300">Occupation</label>
-                <input type="text" name="occupation" value="{{ $user->memberProfile->occupation ?? '' }}" class="form-input">
+                <input type="text" name="occupation" value="{{ $user->member->occupation ?? '' }}" class="form-input">
               </div>
               <div>
                 <label class="form-label uppercase tracking-wider text-primary-700 dark:text-primary-300">Employer/Business</label>
-                <input type="text" name="employer_business" value="{{ $user->memberProfile->employer_business ?? '' }}" class="form-input">
-              </div>
-              <div>
-                <label class="form-label uppercase tracking-wider text-primary-700 dark:text-primary-300">Monthly Income</label>
-                <input type="number" name="monthly_income" value="{{ $user->memberProfile->monthly_income ?? '' }}" class="form-input">
-              </div>
-              <div>
-                <label class="form-label uppercase tracking-wider text-primary-700 dark:text-primary-300">Introduced By</label>
-                <input type="text" name="introduced_by" value="{{ $user->memberProfile->introduced_by ?? '' }}" class="form-input">
-              </div>
-              <div>
-                <label class="form-label uppercase tracking-wider text-primary-700 dark:text-primary-300">Joining Fee</label>
-                <input type="number" name="joining_fee" value="{{ $user->memberProfile->joining_fee ?? '' }}" class="form-input">
-              </div>
-              <div>
-                <label class="form-label uppercase tracking-wider text-primary-700 dark:text-primary-300">Shares Purchased</label>
-                <input type="number" name="shares_purchased" value="{{ $user->memberProfile->shares_purchased ?? '' }}" class="form-input">
-              </div>
-              <div>
-                <label class="form-label uppercase tracking-wider text-primary-700 dark:text-primary-300">Initial Savings Deposit</label>
-                <input type="number" name="initial_savings_deposit" value="{{ $user->memberProfile->initial_savings_deposit ?? '' }}" class="form-input">
+                <input type="text" name="employer" value="{{ $user->member->employer ?? '' }}" class="form-input">
               </div>
             </div>
             <div class="flex justify-end">
@@ -321,19 +227,15 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
                 <label class="form-label uppercase tracking-wider text-primary-700 dark:text-primary-300">Full Name</label>
-                <input type="text" name="kin_full_name" value="{{ $user->memberProfile->kin_full_name ?? '' }}" class="form-input">
+                <input type="text" name="emergency_contact_name" value="{{ $user->member->emergency_contact_name ?? '' }}" class="form-input">
               </div>
               <div>
                 <label class="form-label uppercase tracking-wider text-primary-700 dark:text-primary-300">Relationship</label>
-                <input type="text" name="kin_relationship" value="{{ $user->memberProfile->kin_relationship ?? '' }}" class="form-input">
+                <input type="text" name="emergency_contact_relationship" value="{{ $user->member->emergency_contact_relationship ?? '' }}" class="form-input">
               </div>
               <div>
                 <label class="form-label uppercase tracking-wider text-primary-700 dark:text-primary-300">Phone Number</label>
-                <input type="text" name="kin_phone_number" value="{{ $user->memberProfile->kin_phone_number ?? '' }}" class="form-input">
-              </div>
-              <div class="md:col-span-2">
-                <label class="form-label uppercase tracking-wider text-primary-700 dark:text-primary-300">Address</label>
-                <textarea name="kin_address" rows="2" class="form-input">{{ $user->memberProfile->kin_address ?? '' }}</textarea>
+                <input type="text" name="emergency_contact_phone" value="{{ $user->member->emergency_contact_phone ?? '' }}" class="form-input">
               </div>
             </div>
             <div class="flex justify-end">
@@ -355,29 +257,29 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
                 <label class="form-label uppercase tracking-wider text-primary-700 dark:text-primary-300">Bank Name</label>
-                <input type="text" name="bank_name" value="{{ $user->memberProfile->bank_name ?? '' }}" class="form-input">
+                <input type="text" name="bank_name" value="{{ $user->member->bank_name ?? '' }}" class="form-input">
               </div>
               <div>
                 <label class="form-label uppercase tracking-wider text-primary-700 dark:text-primary-300">Bank Account Number</label>
-                <input type="text" name="bank_account_number" value="{{ $user->memberProfile->bank_account_number ?? '' }}" class="form-input font-mono">
+                <input type="text" name="account_number" value="{{ $user->member->account_number ?? '' }}" class="form-input font-mono">
               </div>
               <div>
                 <label class="form-label uppercase tracking-wider text-primary-700 dark:text-primary-300">Account Name</label>
-                <input type="text" name="account_name" value="{{ $user->memberProfile->account_name ?? '' }}" class="form-input">
+                <input type="text" name="account_name" value="{{ $user->member->account_name ?? '' }}" class="form-input">
               </div>
               <div>
-                <label class="form-label uppercase tracking-wider text-primary-700 dark:text-primary-300">Mobile Money Network</label>
-                <select name="mobile_money_network" class="form-input">
-                  <option value="">Select network...</option>
-                  <option value="mtn" {{ $user->memberProfile->mobile_money_network === 'mtn' ? 'selected' : '' }}>MTN Mobile Money</option>
-                  <option value="airtel" {{ $user->memberProfile->mobile_money_network === 'airtel' ? 'selected' : '' }}>Airtel Money</option>
-                  <option value="vodacom" {{ $user->memberProfile->mobile_money_network === 'vodacom' ? 'selected' : '' }}>Vodacom M-Pesa</option>
-                  <option value="tigopesa" {{ $user->memberProfile->mobile_money_network === 'tigopesa' ? 'selected' : '' }}>Tigo Pesa</option>
+                <label class="form-label uppercase tracking-wider text-primary-700 dark:text-primary-300">Mobile Money Provider</label>
+                <select name="mobile_money_provider" class="form-input">
+                  <option value="">Select provider...</option>
+                  <option value="mtn" {{ ($user->member->mobile_money_provider ?? '') === 'mtn' ? 'selected' : '' }}>MTN Mobile Money</option>
+                  <option value="airtel" {{ ($user->member->mobile_money_provider ?? '') === 'airtel' ? 'selected' : '' }}>Airtel Money</option>
+                  <option value="vodacom" {{ ($user->member->mobile_money_provider ?? '') === 'vodacom' ? 'selected' : '' }}>Vodacom M-Pesa</option>
+                  <option value="tigopesa" {{ ($user->member->mobile_money_provider ?? '') === 'tigopesa' ? 'selected' : '' }}>Tigo Pesa</option>
                 </select>
               </div>
               <div>
-                <label class="form-label uppercase tracking-wider text-primary-700 dark:text-primary-300">Mobile Wallet Number</label>
-                <input type="text" name="mobile_wallet_number" value="{{ $user->memberProfile->mobile_wallet_number ?? '' }}" class="form-input font-mono">
+                <label class="form-label uppercase tracking-wider text-primary-700 dark:text-primary-300">Mobile Money Number</label>
+                <input type="text" name="mobile_money_number" value="{{ $user->member->mobile_money_number ?? '' }}" class="form-input font-mono">
               </div>
             </div>
             <div class="flex justify-end">
@@ -398,24 +300,10 @@
             @method('PUT')
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
-                <label class="form-label uppercase tracking-wider text-primary-700 dark:text-primary-300">Passport Photo</label>
-                <input type="file" name="passport_photo" accept="image/*" class="form-input">
-                @if($user->memberProfile && $user->memberProfile->passport_photo)
-                  <p class="mt-2 text-xs text-primary-600 dark:text-primary-400">Current: {{ $user->memberProfile->passport_photo }}</p>
-                @endif
-              </div>
-              <div>
-                <label class="form-label uppercase tracking-wider text-primary-700 dark:text-primary-300">National ID Copy</label>
-                <input type="file" name="national_id_copy" class="form-input">
-                @if($user->memberProfile && $user->memberProfile->national_id_copy)
-                  <p class="mt-2 text-xs text-primary-600 dark:text-primary-400">Current: {{ $user->memberProfile->national_id_copy }}</p>
-                @endif
-              </div>
-              <div>
-                <label class="form-label uppercase tracking-wider text-primary-700 dark:text-primary-300">Signature</label>
-                <input type="file" name="signature" accept="image/*" class="form-input">
-                @if($user->memberProfile && $user->memberProfile->signature)
-                  <p class="mt-2 text-xs text-primary-600 dark:text-primary-400">Current: {{ $user->memberProfile->signature }}</p>
+                <label class="form-label uppercase tracking-wider text-primary-700 dark:text-primary-300">Profile Photo</label>
+                <input type="file" name="photo" accept="image/*" class="form-input">
+                @if($user->member && $user->member->photo)
+                  <p class="mt-2 text-xs text-primary-600 dark:text-primary-400">Current: {{ $user->member->photo }}</p>
                 @endif
               </div>
             </div>
@@ -438,11 +326,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div class="md:col-span-2">
                 <label class="form-label uppercase tracking-wider text-primary-700 dark:text-primary-300">Notes</label>
-                <textarea name="notes" rows="4" class="form-input">{{ $user->memberProfile->notes ?? '' }}</textarea>
-              </div>
-              <div>
-                <label class="form-label uppercase tracking-wider text-primary-700 dark:text-primary-300">Tags (comma separated)</label>
-                <input type="text" name="tags" value="{{ $user->memberProfile->tags ? implode(', ', json_decode($user->memberProfile->tags, true)) : '' }}" class="form-input" placeholder="e.g. VIP, Corporate">
+                <textarea name="notes" rows="4" class="form-input">{{ $user->member->notes ?? '' }}</textarea>
               </div>
             </div>
             <div class="flex justify-end">
@@ -470,14 +354,13 @@
             <p class="text-xs text-primary-600 dark:text-primary-400 uppercase tracking-wider">Name</p>
             <p class="text-sm font-semibold text-primary-900 dark:text-white">{{ $user->name }}</p>
           </div>
-          @if($user->memberProfile)
           <div>
             <p class="text-xs text-primary-600 dark:text-primary-400 uppercase tracking-wider">Status</p>
             <span class="inline-block px-2 py-1 rounded text-xs font-bold 
-              {{ $user->memberProfile->status === 'active' ? 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300' : 
-                 ($user->memberProfile->status === 'pending' ? 'bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300' : 
+              {{ $user->status === 'active' ? 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300' : 
+                 ($user->status === 'pending' ? 'bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300' : 
                  'bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300') }}">
-              {{ ucfirst($user->memberProfile->status) }}
+              {{ ucfirst($user->status) }}
             </span>
           </div>
           @if($user->memberType)
@@ -485,7 +368,6 @@
             <p class="text-xs text-primary-600 dark:text-primary-400 uppercase tracking-wider">Member Type</p>
             <p class="text-sm text-primary-700 dark:text-primary-300">{{ $user->memberType->name }}</p>
           </div>
-          @endif
           @endif
         </div>
         <div class="mt-6 pt-4 border-t border-primary-100 dark:border-primary-900/50">
@@ -530,7 +412,6 @@ function memberEditForm() {
             timer: 1500,
             showConfirmButton: false
           });
-          // Reload page to show updated profile photo
           setTimeout(() => window.location.reload(), 1600);
         } else {
           if (data.errors) {
@@ -914,4 +795,3 @@ function memberEditForm() {
 </script>
 
 @endsection
-

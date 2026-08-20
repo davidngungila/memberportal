@@ -17,7 +17,7 @@ use App\Http\Requests\StoreAdditionalInfoRequest;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Models\ActivityLog;
-use App\Models\MemberProfile;
+use App\Models\Member;
 use App\Models\MemberType;
 use App\Models\Role;
 use App\Models\User;
@@ -50,9 +50,11 @@ class UserController extends Controller
         if (! empty($search)) {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%")
                     ->orWhere('membercode', 'like', "%{$search}%")
-                    ->orWhere('phone', 'like', "%{$search}%");
+                    ->orWhereHas('member', function ($mq) use ($search) {
+                        $mq->where('email', 'like', "%{$search}%")
+                            ->orWhere('phone', 'like', "%{$search}%");
+                    });
             });
         }
 
@@ -110,31 +112,26 @@ class UserController extends Controller
             // Generate member number
             $memberNumber = 'MB' . date('ymd') . str_pad((string) rand(1, 9999), 4, '0', STR_PAD_LEFT);
             
-            // Auto-generate password from last name (uppercase)
-            $autoPassword = strtoupper($validated['last_name']);
-            
             // Create user
             $user = User::create([
-                'name' => trim($validated['first_name'] . ' ' . ($validated['middle_name'] ?? '') . ' ' . $validated['last_name']),
-                'email' => $validated['email_address'],
-                'password' => Hash::make($autoPassword),
+                'name' => $validated['name'],
+                'password' => Hash::make('password'),
                 'membercode' => $memberNumber,
-                'member_type_id' => $validated['member_type_id'],
-                'status' => $validated['status'],
+                'status' => $validated['status'] ?? 'active',
             ]);
 
-            // Create member profile
-            MemberProfile::create([
+            // Create member record
+            Member::create([
                 'user_id' => $user->id,
-                'first_name' => $validated['first_name'],
-                'middle_name' => $validated['middle_name'],
-                'last_name' => $validated['last_name'],
-                'gender' => $validated['gender'],
-                'date_of_birth' => $validated['date_of_birth'],
-                'national_id' => $validated['national_id'],
-                'passport_driving_license' => $validated['passport_driving_license'],
-                'registration_date' => $validated['registration_date'],
-                'status' => $validated['status'],
+                'membercode' => $memberNumber,
+                'full_name' => $validated['name'],
+                'gender' => $validated['gender'] ?? null,
+                'date_of_birth' => $validated['date_of_birth'] ?? null,
+                'national_id' => $validated['national_id'] ?? null,
+                'registration_date' => $validated['registration_date'] ?? now(),
+                'registration_status' => 'registered',
+                'joined_at' => now(),
+                'status' => 'Active',
             ]);
 
             ActivityLog::create([
@@ -170,12 +167,12 @@ class UserController extends Controller
         try {
             $validated = $request->validated();
             
-            $profile = MemberProfile::where('user_id', $userId)->firstOrFail();
-            $profile->update($validated);
+            $member = Member::where('user_id', $userId)->firstOrFail();
+            $member->update($validated);
 
             ActivityLog::create([
                 'user_id' => Auth::id(),
-                'description' => 'Admin saved contact info for member: ' . $profile->full_name,
+                'description' => 'Admin saved contact info for member: ' . $member->full_name,
                 'ip_address' => $request->ip(),
                 'user_agent' => $request->userAgent(),
             ]);
@@ -185,7 +182,7 @@ class UserController extends Controller
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Member profile not found. Please complete the Basic Information tab first.'
+                'message' => 'Member not found. Please complete the Basic Information tab first.'
             ], 404);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
@@ -210,12 +207,12 @@ class UserController extends Controller
     {
         $validated = $request->validated();
         
-        $profile = MemberProfile::where('user_id', $userId)->firstOrFail();
-        $profile->update($validated);
+        $member = Member::where('user_id', $userId)->firstOrFail();
+        $member->update($validated);
 
         ActivityLog::create([
             'user_id' => Auth::id(),
-            'description' => 'Admin saved membership details for member: ' . $profile->full_name,
+            'description' => 'Admin saved membership details for member: ' . $member->full_name,
             'ip_address' => $request->ip(),
             'user_agent' => $request->userAgent(),
         ]);
@@ -258,17 +255,16 @@ class UserController extends Controller
     {
         $validated = $request->validated();
         
-        $profile = MemberProfile::where('user_id', $userId)->firstOrFail();
-        $profile->update([
-            'kin_full_name' => $validated['kin_full_name'],
-            'kin_relationship' => $validated['kin_relationship'],
-            'kin_phone_number' => $validated['kin_phone_number'],
-            'kin_address' => $validated['kin_address'],
+        $member = Member::where('user_id', $userId)->firstOrFail();
+        $member->update([
+            'emergency_contact_name' => $validated['kin_full_name'],
+            'emergency_contact_relationship' => $validated['kin_relationship'],
+            'emergency_contact_phone' => $validated['kin_phone_number'],
         ]);
 
         ActivityLog::create([
             'user_id' => Auth::id(),
-            'description' => 'Admin saved next of kin info for member: ' . $profile->full_name,
+            'description' => 'Admin saved next of kin info for member: ' . $member->full_name,
             'ip_address' => $request->ip(),
             'user_agent' => $request->userAgent(),
         ]);
@@ -281,12 +277,30 @@ class UserController extends Controller
     {
         $validated = $request->validated();
         
-        $profile = MemberProfile::where('user_id', $userId)->firstOrFail();
-        $profile->update($validated);
+        $member = Member::where('user_id', $userId)->firstOrFail();
+
+        $bankingData = [];
+        if (isset($validated['bank_name'])) {
+            $bankingData['bank_name'] = $validated['bank_name'];
+        }
+        if (isset($validated['bank_account_number'])) {
+            $bankingData['account_number'] = $validated['bank_account_number'];
+        }
+        if (isset($validated['account_name'])) {
+            $bankingData['account_name'] = $validated['account_name'];
+        }
+        if (isset($validated['mobile_money_network'])) {
+            $bankingData['mobile_money_provider'] = $validated['mobile_money_network'];
+        }
+        if (isset($validated['mobile_wallet_number'])) {
+            $bankingData['mobile_money_number'] = $validated['mobile_wallet_number'];
+        }
+
+        $member->update($bankingData);
 
         ActivityLog::create([
             'user_id' => Auth::id(),
-            'description' => 'Admin saved banking info for member: ' . $profile->full_name,
+            'description' => 'Admin saved banking info for member: ' . $member->full_name,
             'ip_address' => $request->ip(),
             'user_agent' => $request->userAgent(),
         ]);
@@ -299,12 +313,12 @@ class UserController extends Controller
     {
         $validated = $request->validated();
         
-        $profile = MemberProfile::where('user_id', $userId)->firstOrFail();
+        $member = Member::where('user_id', $userId)->firstOrFail();
         
         $updateData = [];
         
         if ($request->hasFile('passport_photo')) {
-            $updateData['passport_photo'] = $request->file('passport_photo')->store('documents', 'public');
+            $updateData['photo'] = $request->file('passport_photo')->store('documents', 'public');
         }
         
         if ($request->hasFile('national_id_copy')) {
@@ -323,11 +337,11 @@ class UserController extends Controller
             $updateData['other_attachments'] = $attachments;
         }
         
-        $profile->update($updateData);
+        $member->update($updateData);
 
         ActivityLog::create([
             'user_id' => Auth::id(),
-            'description' => 'Admin saved documents for member: ' . $profile->full_name,
+            'description' => 'Admin saved documents for member: ' . $member->full_name,
             'ip_address' => $request->ip(),
             'user_agent' => $request->userAgent(),
         ]);
@@ -340,12 +354,12 @@ class UserController extends Controller
     {
         $validated = $request->validated();
         
-        $profile = MemberProfile::where('user_id', $userId)->firstOrFail();
-        $profile->update($validated);
+        $member = Member::where('user_id', $userId)->firstOrFail();
+        $member->update($validated);
 
         ActivityLog::create([
             'user_id' => Auth::id(),
-            'description' => 'Admin saved additional info for member: ' . $profile->full_name,
+            'description' => 'Admin saved additional info for member: ' . $member->full_name,
             'ip_address' => $request->ip(),
             'user_agent' => $request->userAgent(),
         ]);
@@ -360,11 +374,9 @@ class UserController extends Controller
 
         $user = User::create([
             'name' => $validated['name'],
-            'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
             'role' => $validated['role'],
             'membercode' => $validated['membercode'] ?? null,
-            'member_type_id' => $validated['member_type_id'] ?? null,
             'status' => $request->input('status', 'active'),
         ]);
 
@@ -375,6 +387,22 @@ class UserController extends Controller
                 $user->role = $validated['role'];
                 $user->save();
             }
+        }
+
+        if ($validated['role'] === 'member') {
+            $memberNumber = $validated['membercode'] ?? ('MB' . date('ymd') . str_pad((string) rand(1, 9999), 4, '0', STR_PAD_LEFT));
+
+            Member::create([
+                'user_id' => $user->id,
+                'membercode' => $memberNumber,
+                'full_name' => $user->name,
+                'email' => $validated['email'] ?? null,
+                'membership_type_id' => $validated['member_type_id'] ?? null,
+                'status' => 'Active',
+                'registration_status' => 'registered',
+                'registration_date' => now(),
+                'joined_at' => now(),
+            ]);
         }
 
         ActivityLog::create([
@@ -407,7 +435,7 @@ class UserController extends Controller
                 ->with('error', 'Invalid user ID.');
         }
 
-        $user = User::with(['roles', 'memberProfile', 'memberType'])->findOrFail($id);
+        $user = User::with(['roles', 'member', 'memberType'])->findOrFail($id);
 
         ActivityLog::create([
             'user_id' => Auth::id(),
@@ -428,7 +456,7 @@ class UserController extends Controller
     {
         $id = (int) $this->encryptedIdService->decrypt($encryptedId);
         
-        $user = User::with(['roles', 'memberProfile', 'memberType'])->findOrFail($id);
+        $user = User::with(['roles', 'member', 'memberType'])->findOrFail($id);
 
         ActivityLog::create([
             'user_id' => Auth::id(),
@@ -455,80 +483,74 @@ class UserController extends Controller
             $id = (int) $this->encryptedIdService->decrypt($encryptedId);
             $validated = $request->validated();
             
-            // Log the validated data for debugging
             \Log::info('UpdateBasicInfo validated data:', $validated);
-            
-            // Don't filter for now to see if data is being received
-            // $validated = array_filter($validated, function($value) {
-            //     return $value !== '' && $value !== null;
-            // });
             
             \Log::info('UpdateBasicInfo after filter:', $validated);
             
             $user = User::findOrFail($id);
             
             // Update user basic info - only if fields are present
-            if (isset($validated['first_name']) || isset($validated['last_name'])) {
-                $firstName = $validated['first_name'] ?? $user->memberProfile->first_name ?? '';
-                $middleName = $validated['middle_name'] ?? $user->memberProfile->middle_name ?? '';
-                $lastName = $validated['last_name'] ?? $user->memberProfile->last_name ?? '';
+            if (isset($validated['name'])) {
+                $user->name = $validated['name'];
+            } elseif (isset($validated['first_name']) || isset($validated['last_name'])) {
+                $firstName = $validated['first_name'] ?? $user->member->full_name ?? '';
+                $middleName = $validated['middle_name'] ?? '';
+                $lastName = $validated['last_name'] ?? '';
                 $user->name = trim($firstName . ' ' . $middleName . ' ' . $lastName);
             }
             
-            if (isset($validated['email_address'])) {
-                $user->email = $validated['email_address'];
+            // Email and membership_type_id live on members table now
+            if (isset($validated['email']) && $user->member) {
+                $user->member->update(['email' => $validated['email']]);
             }
             
-            if (isset($validated['member_type_id'])) {
-                $user->member_type_id = $validated['member_type_id'];
+            if (isset($validated['membership_type_id']) && $user->member) {
+                $user->member->update(['membership_type_id' => $validated['membership_type_id']]);
             }
             
             $user->save();
 
-            // Update member profile if exists
-            if ($user->memberProfile) {
-                $profileUpdateData = [];
+            // Update member record if exists
+            $member = $user->member;
+            if ($member) {
+                $memberUpdateData = [];
                 
-                if (isset($validated['first_name'])) {
-                    $profileUpdateData['first_name'] = $validated['first_name'];
-                }
-                if (isset($validated['middle_name'])) {
-                    $profileUpdateData['middle_name'] = $validated['middle_name'];
-                }
-                if (isset($validated['last_name'])) {
-                    $profileUpdateData['last_name'] = $validated['last_name'];
+                if (isset($validated['name'])) {
+                    $memberUpdateData['full_name'] = $validated['name'];
+                } elseif (isset($validated['first_name']) || isset($validated['last_name'])) {
+                    $firstName = $validated['first_name'] ?? '';
+                    $middleName = $validated['middle_name'] ?? '';
+                    $lastName = $validated['last_name'] ?? '';
+                    $memberUpdateData['full_name'] = trim($firstName . ' ' . $middleName . ' ' . $lastName);
                 }
                 if (isset($validated['gender'])) {
-                    $profileUpdateData['gender'] = $validated['gender'];
+                    $memberUpdateData['gender'] = $validated['gender'];
                 }
                 if (isset($validated['date_of_birth'])) {
-                    $profileUpdateData['date_of_birth'] = $validated['date_of_birth'];
+                    $memberUpdateData['date_of_birth'] = $validated['date_of_birth'];
                 }
                 if (isset($validated['national_id'])) {
-                    $profileUpdateData['national_id'] = $validated['national_id'];
-                }
-                if (isset($validated['passport_driving_license'])) {
-                    $profileUpdateData['passport_driving_license'] = $validated['passport_driving_license'];
+                    $memberUpdateData['national_id'] = $validated['national_id'];
                 }
                 if (isset($validated['registration_date'])) {
-                    $profileUpdateData['registration_date'] = $validated['registration_date'];
+                    $memberUpdateData['registration_date'] = $validated['registration_date'];
                 }
                 if (isset($validated['status'])) {
-                    $profileUpdateData['status'] = $validated['status'];
+                    $memberUpdateData['status'] = $validated['status'];
                 }
 
                 // Handle profile photo upload
                 if ($request->hasFile('profile_photo')) {
-                    $profileUpdateData['passport_photo'] = $request->file('profile_photo')->store('documents', 'public');
+                    $memberUpdateData['profile_photo'] = $request->file('profile_photo')->store('documents', 'public');
                 }
 
-                \Log::info('UpdateBasicInfo profile update data:', $profileUpdateData);
+                \Log::info('UpdateBasicInfo member update data:', $memberUpdateData);
                 
-                if (!empty($profileUpdateData)) {
-                    $user->memberProfile->update($profileUpdateData);
-                    \Log::info('UpdateBasicInfo profile updated successfully');
+                if (!empty($memberUpdateData)) {
+                    $member->update($memberUpdateData);
+                    \Log::info('UpdateBasicInfo member updated successfully');
                 } else {
-                    \Log::info('UpdateBasicInfo no profile data to update');
+                    \Log::info('UpdateBasicInfo no member data to update');
                 }
             }
 
@@ -563,35 +585,50 @@ class UserController extends Controller
             $id = (int) $this->encryptedIdService->decrypt($encryptedId);
             $validated = $request->validated();
             
-            $profile = MemberProfile::where('user_id', $id)->first();
+            $member = Member::where('user_id', $id)->first();
             
-            // Create profile if it doesn't exist
-            if (!$profile) {
+            // Create member if it doesn't exist
+            if (!$member) {
                 $user = User::findOrFail($id);
-                $profile = MemberProfile::create([
+                $memberNumber = 'MB' . date('ymd') . str_pad((string) rand(1, 9999), 4, '0', STR_PAD_LEFT);
+                $member = Member::create([
                     'user_id' => $id,
-                    'first_name' => '',
-                    'middle_name' => '',
-                    'last_name' => '',
-                    'status' => 'pending',
+                    'membercode' => $memberNumber,
+                    'full_name' => $user->name,
+                    'status' => 'Active',
+                    'registration_status' => 'registered',
+                    'registration_date' => now(),
+                    'joined_at' => now(),
                 ]);
             }
             
-            $profileUpdateData = [];
+            $memberUpdateData = [];
             
-            foreach ($validated as $key => $value) {
-                $profileUpdateData[$key] = $value;
+            if (isset($validated['phone_number'])) {
+                $memberUpdateData['phone'] = $validated['phone_number'];
+            }
+            if (isset($validated['email_address'])) {
+                $memberUpdateData['email'] = $validated['email_address'];
+            }
+            if (isset($validated['physical_address'])) {
+                $memberUpdateData['residential_address'] = $validated['physical_address'];
+            }
+            if (isset($validated['occupation'])) {
+                $memberUpdateData['occupation'] = $validated['occupation'];
+            }
+            if (isset($validated['employer_business'])) {
+                $memberUpdateData['employer'] = $validated['employer_business'];
             }
             
-            if (!empty($profileUpdateData)) {
-                $profile->update($profileUpdateData);
+            if (!empty($memberUpdateData)) {
+                $member->update($memberUpdateData);
             }
 
             ActivityLog::create([
                 'user_id' => Auth::id(),
                 'subject_type' => 'user',
                 'subject_id' => $id,
-                'description' => 'Admin updated contact info for member: ' . $profile->full_name,
+                'description' => 'Admin updated contact info for member: ' . $member->full_name,
                 'ip_address' => $request->ip(),
                 'user_agent' => $request->userAgent(),
             ]);
@@ -622,35 +659,38 @@ class UserController extends Controller
             $id = (int) $this->encryptedIdService->decrypt($encryptedId);
             $validated = $request->validated();
             
-            $profile = MemberProfile::where('user_id', $id)->first();
+            $member = Member::where('user_id', $id)->first();
             
-            // Create profile if it doesn't exist
-            if (!$profile) {
+            // Create member if it doesn't exist
+            if (!$member) {
                 $user = User::findOrFail($id);
-                $profile = MemberProfile::create([
+                $memberNumber = 'MB' . date('ymd') . str_pad((string) rand(1, 9999), 4, '0', STR_PAD_LEFT);
+                $member = Member::create([
                     'user_id' => $id,
-                    'first_name' => '',
-                    'middle_name' => '',
-                    'last_name' => '',
-                    'status' => 'pending',
+                    'membercode' => $memberNumber,
+                    'full_name' => $user->name,
+                    'status' => 'Active',
+                    'registration_status' => 'registered',
+                    'registration_date' => now(),
+                    'joined_at' => now(),
                 ]);
             }
             
-            $profileUpdateData = [];
+            $memberUpdateData = [];
             
             foreach ($validated as $key => $value) {
-                $profileUpdateData[$key] = $value;
+                $memberUpdateData[$key] = $value;
             }
             
-            if (!empty($profileUpdateData)) {
-                $profile->update($profileUpdateData);
+            if (!empty($memberUpdateData)) {
+                $member->update($memberUpdateData);
             }
 
             ActivityLog::create([
                 'user_id' => Auth::id(),
                 'subject_type' => 'user',
                 'subject_id' => $id,
-                'description' => 'Admin updated membership details for member: ' . $profile->full_name,
+                'description' => 'Admin updated membership details for member: ' . $member->full_name,
                 'ip_address' => $request->ip(),
                 'user_agent' => $request->userAgent(),
             ]);
@@ -708,44 +748,44 @@ class UserController extends Controller
             $id = (int) $this->encryptedIdService->decrypt($encryptedId);
             $validated = $request->validated();
             
-            $profile = MemberProfile::where('user_id', $id)->first();
+            $member = Member::where('user_id', $id)->first();
             
-            // Create profile if it doesn't exist
-            if (!$profile) {
+            // Create member if it doesn't exist
+            if (!$member) {
                 $user = User::findOrFail($id);
-                $profile = MemberProfile::create([
+                $memberNumber = 'MB' . date('ymd') . str_pad((string) rand(1, 9999), 4, '0', STR_PAD_LEFT);
+                $member = Member::create([
                     'user_id' => $id,
-                    'first_name' => '',
-                    'middle_name' => '',
-                    'last_name' => '',
-                    'status' => 'pending',
+                    'membercode' => $memberNumber,
+                    'full_name' => $user->name,
+                    'status' => 'Active',
+                    'registration_status' => 'registered',
+                    'registration_date' => now(),
+                    'joined_at' => now(),
                 ]);
             }
             
-            $profileUpdateData = [];
+            $memberUpdateData = [];
             
             if (isset($validated['kin_full_name'])) {
-                $profileUpdateData['kin_full_name'] = $validated['kin_full_name'];
+                $memberUpdateData['emergency_contact_name'] = $validated['kin_full_name'];
             }
             if (isset($validated['kin_relationship'])) {
-                $profileUpdateData['kin_relationship'] = $validated['kin_relationship'];
+                $memberUpdateData['emergency_contact_relationship'] = $validated['kin_relationship'];
             }
             if (isset($validated['kin_phone_number'])) {
-                $profileUpdateData['kin_phone_number'] = $validated['kin_phone_number'];
-            }
-            if (isset($validated['kin_address'])) {
-                $profileUpdateData['kin_address'] = $validated['kin_address'];
+                $memberUpdateData['emergency_contact_phone'] = $validated['kin_phone_number'];
             }
             
-            if (!empty($profileUpdateData)) {
-                $profile->update($profileUpdateData);
+            if (!empty($memberUpdateData)) {
+                $member->update($memberUpdateData);
             }
 
             ActivityLog::create([
                 'user_id' => Auth::id(),
                 'subject_type' => 'user',
                 'subject_id' => $id,
-                'description' => 'Admin updated next of kin info for member: ' . $profile->full_name,
+                'description' => 'Admin updated next of kin info for member: ' . $member->full_name,
                 'ip_address' => $request->ip(),
                 'user_agent' => $request->userAgent(),
             ]);
@@ -770,35 +810,50 @@ class UserController extends Controller
             $id = (int) $this->encryptedIdService->decrypt($encryptedId);
             $validated = $request->validated();
             
-            $profile = MemberProfile::where('user_id', $id)->first();
+            $member = Member::where('user_id', $id)->first();
             
-            // Create profile if it doesn't exist
-            if (!$profile) {
+            // Create member if it doesn't exist
+            if (!$member) {
                 $user = User::findOrFail($id);
-                $profile = MemberProfile::create([
+                $memberNumber = 'MB' . date('ymd') . str_pad((string) rand(1, 9999), 4, '0', STR_PAD_LEFT);
+                $member = Member::create([
                     'user_id' => $id,
-                    'first_name' => '',
-                    'middle_name' => '',
-                    'last_name' => '',
-                    'status' => 'pending',
+                    'membercode' => $memberNumber,
+                    'full_name' => $user->name,
+                    'status' => 'Active',
+                    'registration_status' => 'registered',
+                    'registration_date' => now(),
+                    'joined_at' => now(),
                 ]);
             }
             
-            $profileUpdateData = [];
+            $memberUpdateData = [];
             
-            foreach ($validated as $key => $value) {
-                $profileUpdateData[$key] = $value;
+            if (isset($validated['bank_name'])) {
+                $memberUpdateData['bank_name'] = $validated['bank_name'];
+            }
+            if (isset($validated['bank_account_number'])) {
+                $memberUpdateData['account_number'] = $validated['bank_account_number'];
+            }
+            if (isset($validated['account_name'])) {
+                $memberUpdateData['account_name'] = $validated['account_name'];
+            }
+            if (isset($validated['mobile_money_network'])) {
+                $memberUpdateData['mobile_money_provider'] = $validated['mobile_money_network'];
+            }
+            if (isset($validated['mobile_wallet_number'])) {
+                $memberUpdateData['mobile_money_number'] = $validated['mobile_wallet_number'];
             }
             
-            if (!empty($profileUpdateData)) {
-                $profile->update($profileUpdateData);
+            if (!empty($memberUpdateData)) {
+                $member->update($memberUpdateData);
             }
 
             ActivityLog::create([
                 'user_id' => Auth::id(),
                 'subject_type' => 'user',
                 'subject_id' => $id,
-                'description' => 'Admin updated banking info for member: ' . $profile->full_name,
+                'description' => 'Admin updated banking info for member: ' . $member->full_name,
                 'ip_address' => $request->ip(),
                 'user_agent' => $request->userAgent(),
             ]);
@@ -823,24 +878,27 @@ class UserController extends Controller
             $id = (int) $this->encryptedIdService->decrypt($encryptedId);
             $validated = $request->validated();
             
-            $profile = MemberProfile::where('user_id', $id)->first();
+            $member = Member::where('user_id', $id)->first();
             
-            // Create profile if it doesn't exist
-            if (!$profile) {
+            // Create member if it doesn't exist
+            if (!$member) {
                 $user = User::findOrFail($id);
-                $profile = MemberProfile::create([
+                $memberNumber = 'MB' . date('ymd') . str_pad((string) rand(1, 9999), 4, '0', STR_PAD_LEFT);
+                $member = Member::create([
                     'user_id' => $id,
-                    'first_name' => '',
-                    'middle_name' => '',
-                    'last_name' => '',
-                    'status' => 'pending',
+                    'membercode' => $memberNumber,
+                    'full_name' => $user->name,
+                    'status' => 'Active',
+                    'registration_status' => 'registered',
+                    'registration_date' => now(),
+                    'joined_at' => now(),
                 ]);
             }
             
             $updateData = [];
             
             if ($request->hasFile('passport_photo')) {
-                $updateData['passport_photo'] = $request->file('passport_photo')->store('documents', 'public');
+                $updateData['photo'] = $request->file('passport_photo')->store('documents', 'public');
             }
             
             if ($request->hasFile('national_id_copy')) {
@@ -860,14 +918,14 @@ class UserController extends Controller
             }
             
             if (!empty($updateData)) {
-                $profile->update($updateData);
+                $member->update($updateData);
             }
 
             ActivityLog::create([
                 'user_id' => Auth::id(),
                 'subject_type' => 'user',
                 'subject_id' => $id,
-                'description' => 'Admin updated documents for member: ' . $profile->full_name,
+                'description' => 'Admin updated documents for member: ' . $member->full_name,
                 'ip_address' => $request->ip(),
                 'user_agent' => $request->userAgent(),
             ]);
@@ -892,35 +950,38 @@ class UserController extends Controller
             $id = (int) $this->encryptedIdService->decrypt($encryptedId);
             $validated = $request->validated();
             
-            $profile = MemberProfile::where('user_id', $id)->first();
+            $member = Member::where('user_id', $id)->first();
             
-            // Create profile if it doesn't exist
-            if (!$profile) {
+            // Create member if it doesn't exist
+            if (!$member) {
                 $user = User::findOrFail($id);
-                $profile = MemberProfile::create([
+                $memberNumber = 'MB' . date('ymd') . str_pad((string) rand(1, 9999), 4, '0', STR_PAD_LEFT);
+                $member = Member::create([
                     'user_id' => $id,
-                    'first_name' => '',
-                    'middle_name' => '',
-                    'last_name' => '',
-                    'status' => 'pending',
+                    'membercode' => $memberNumber,
+                    'full_name' => $user->name,
+                    'status' => 'Active',
+                    'registration_status' => 'registered',
+                    'registration_date' => now(),
+                    'joined_at' => now(),
                 ]);
             }
             
-            $profileUpdateData = [];
+            $memberUpdateData = [];
             
             foreach ($validated as $key => $value) {
-                $profileUpdateData[$key] = $value;
+                $memberUpdateData[$key] = $value;
             }
             
-            if (!empty($profileUpdateData)) {
-                $profile->update($profileUpdateData);
+            if (!empty($memberUpdateData)) {
+                $member->update($memberUpdateData);
             }
 
             ActivityLog::create([
                 'user_id' => Auth::id(),
                 'subject_type' => 'user',
                 'subject_id' => $id,
-                'description' => 'Admin updated additional info for member: ' . $profile->full_name,
+                'description' => 'Admin updated additional info for member: ' . $member->full_name,
                 'ip_address' => $request->ip(),
                 'user_agent' => $request->userAgent(),
             ]);

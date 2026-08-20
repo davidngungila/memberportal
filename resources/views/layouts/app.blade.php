@@ -218,7 +218,8 @@ body { color: #064e3b; background: #f0fdf4; }
 </div>
 
 @php
-    $userData = $user ?? (auth()->check() ? auth()->user()->only(['id', 'name', 'email', 'role', 'membercode', 'phone', 'branch']) : null);
+    $authUser = auth()->check() ? auth()->user() : null;
+    $userData = $user ?? ($authUser ? array_merge($authUser->only(['id', 'name', 'role', 'membercode', 'branch']), ['email' => $authUser->email, 'phone' => $authUser->phone]) : null);
 @endphp
 
 <script>

@@ -56,26 +56,26 @@
         </div>
       </div>
 
-      @if($user->memberProfile)
+      @if($user->member)
       <div class="glass p-6 rounded-2xl mt-6">
         <h2 class="font-bold text-primary-900 dark:text-white text-sm mb-4">Member Profile</h2>
         <div class="space-y-4">
           <div class="grid grid-cols-2 gap-4">
             <div>
               <p class="text-xs text-primary-600 dark:text-primary-400">Full Name</p>
-              <p class="text-sm font-semibold text-primary-900 dark:text-white">{{ $user->memberProfile->full_name }}</p>
+              <p class="text-sm font-semibold text-primary-900 dark:text-white">{{ $user->member->full_name }}</p>
             </div>
             <div>
               <p class="text-xs text-primary-600 dark:text-primary-400">Gender</p>
-              <p class="text-sm font-semibold text-primary-900 dark:text-white">{{ ucfirst($user->memberProfile->gender) }}</p>
+              <p class="text-sm font-semibold text-primary-900 dark:text-white">{{ ucfirst($user->member->gender) }}</p>
             </div>
             <div>
               <p class="text-xs text-primary-600 dark:text-primary-400">Phone</p>
-              <p class="text-sm font-semibold text-primary-900 dark:text-white">{{ $user->memberProfile->phone_number }}</p>
+              <p class="text-sm font-semibold text-primary-900 dark:text-white">{{ $user->member->phone }}</p>
             </div>
             <div>
               <p class="text-xs text-primary-600 dark:text-primary-400">Registration Date</p>
-              <p class="text-sm font-semibold text-primary-900 dark:text-white">{{ $user->memberProfile->registration_date ? $user->memberProfile->registration_date->format('M d, Y') : '—' }}</p>
+              <p class="text-sm font-semibold text-primary-900 dark:text-white">{{ $user->member->registration_date ? $user->member->registration_date->format('M d, Y') : '—' }}</p>
             </div>
           </div>
         </div>

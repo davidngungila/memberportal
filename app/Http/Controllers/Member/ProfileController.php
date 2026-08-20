@@ -68,10 +68,11 @@ class ProfileController extends Controller
         Gate::authorize('member-only');
 
         $user = Auth::user();
+        $member = $user->member;
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', 'unique:users,email,'.$user->id],
+            'email' => ['required', 'email', 'max:255', 'unique:members,email,'.$member->id],
             'phone' => ['nullable', 'string', 'max:20'],
             'address' => ['nullable', 'string', 'max:500'],
             'occupation' => ['nullable', 'string', 'max:255'],
@@ -88,6 +89,7 @@ class ProfileController extends Controller
                 return redirect()->back();
             }
             $user->password = Hash::make($validated['new_password']);
+            $user->save();
         }
 
         // Handle photo upload
@@ -95,30 +97,33 @@ class ProfileController extends Controller
             $file = $request->file('photo');
             $fileName = time() . '_' . $file->getClientOriginalName();
             $filePath = $file->storeAs('profile-photos', $fileName, 'public');
-            $user->photo = $filePath;
 
-            // Delete old photo if exists
-            if ($user->getOriginal('photo') && Storage::disk('public')->exists($user->getOriginal('photo'))) {
-                Storage::disk('public')->delete($user->getOriginal('photo'));
+            if ($member->profile_photo && Storage::disk('public')->exists($member->profile_photo)) {
+                Storage::disk('public')->delete($member->profile_photo);
             }
+
+            $member->profile_photo = $filePath;
         }
 
         // Handle photo removal
         if ($request->input('remove_photo')) {
-            if ($user->getOriginal('photo') && Storage::disk('public')->exists($user->getOriginal('photo'))) {
-                Storage::disk('public')->delete($user->getOriginal('photo'));
+            if ($member->profile_photo && Storage::disk('public')->exists($member->profile_photo)) {
+                Storage::disk('public')->delete($member->profile_photo);
             }
-            $user->photo = null;
+            $member->profile_photo = null;
         }
 
-        // Update user fields
+        // Update user name
         $user->name = $validated['name'];
-        $user->email = $validated['email'];
-        $user->phone = $validated['phone'] ?? $user->phone;
-        $user->address = $validated['address'] ?? $user->address;
-        $user->occupation = $validated['occupation'] ?? $user->occupation;
-        $user->employer = $validated['employer'] ?? $user->employer;
         $user->save();
+
+        // Update member fields
+        $member->email = $validated['email'];
+        $member->phone = $validated['phone'] ?? $member->phone;
+        $member->residential_address = $validated['address'] ?? $member->residential_address;
+        $member->occupation = $validated['occupation'] ?? $member->occupation;
+        $member->employer = $validated['employer'] ?? $member->employer;
+        $member->save();
 
         ActivityLog::create([
             'user_id' => $user->id,
@@ -129,7 +134,7 @@ class ProfileController extends Controller
             'user_agent' => $request->userAgent(),
             'properties' => [
                 'name' => $user->name,
-                'email' => $user->email,
+                'email' => $member->email,
                 'photo_updated' => $request->hasFile('photo'),
             ],
         ]);
