@@ -18,14 +18,6 @@ return new class extends Migration
                 $userId = DB::table('users')->where('name', $member->full_name)->value('id');
             }
 
-            if (!$userId && $member->phone) {
-                $userId = DB::table('users')->where('phone', $member->phone)->value('id');
-            }
-
-            if (!$userId && $member->email) {
-                $userId = DB::table('users')->where('email', $member->email)->value('id');
-            }
-
             if ($userId) {
                 DB::table('members')->where('id', $member->id)->update(['user_id' => $userId]);
             }
