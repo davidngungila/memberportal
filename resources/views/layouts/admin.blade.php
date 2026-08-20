@@ -507,6 +507,13 @@
         <span x-show="!sidebarCollapsed" class="font-medium whitespace-nowrap">Users</span>
       </a>
 
+      <a href="{{ route('admin.staff.index') }}"
+         class="sidebar-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-primary-200 hover:text-white transition-all duration-150
+                {{ request()->routeIs('admin.staff.*') ? 'active' : '' }}">
+        <i class="fa-solid fa-id-badge w-4 text-center flex-shrink-0"></i>
+        <span x-show="!sidebarCollapsed" class="font-medium whitespace-nowrap">Staff</span>
+      </a>
+
       <a href="{{ route('admin.roles.index') }}"
          class="sidebar-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-primary-200 hover:text-white transition-all duration-150
                 {{ request()->routeIs('admin.roles.*') ? 'active' : '' }}">

@@ -18,6 +18,7 @@ use App\Http\Controllers\Admin\InvestmentController as AdminInvestmentController
 use App\Http\Controllers\Admin\ReportController as AdminReportController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Admin\SettingController as AdminSettingController;
+use App\Http\Controllers\Admin\StaffController as AdminStaffController;
 use App\Http\Controllers\Admin\GoogleSheetsController as AdminGoogleSheetsController;
 use App\Http\Controllers\Admin\ActivityLogController as AdminActivityLogController;
 use App\Http\Controllers\Admin\RoleController as AdminRoleController;
@@ -263,6 +264,14 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->name('admin.')->grou
     Route::delete('/users/{encryptedId}', [AdminUserController::class, 'destroy'])->name('users.destroy');
     Route::post('/users/{encryptedId}/reset-password', [AdminUserController::class, 'resetPassword'])->name('users.reset-password');
     Route::post('/users/bulk-reset-password', [AdminUserController::class, 'bulkResetPassword'])->name('users.bulk-reset-password');
+
+    Route::get('/staff', [AdminStaffController::class, 'index'])->name('staff.index');
+    Route::get('/staff/create', [AdminStaffController::class, 'create'])->name('staff.create');
+    Route::post('/staff', [AdminStaffController::class, 'store'])->name('staff.store');
+    Route::get('/staff/{encryptedId}', [AdminStaffController::class, 'show'])->name('staff.show');
+    Route::get('/staff/{encryptedId}/edit', [AdminStaffController::class, 'edit'])->name('staff.edit');
+    Route::put('/staff/{encryptedId}', [AdminStaffController::class, 'update'])->name('staff.update');
+    Route::delete('/staff/{encryptedId}', [AdminStaffController::class, 'destroy'])->name('staff.destroy');
 
     Route::get('/settings', [AdminSettingController::class, 'index'])->name('settings.index');
     Route::put('/settings', [AdminSettingController::class, 'update'])->name('settings.update');
