@@ -126,6 +126,11 @@ class Member extends Model
         return $this->hasMany(MembershipApplication::class, 'membercode', 'membercode');
     }
 
+    public function staff(): HasMany
+    {
+        return $this->hasMany(Staff::class);
+    }
+
     public function scopeByMembercode($query, string $membercode)
     {
         return $query->where('membercode', $membercode);
