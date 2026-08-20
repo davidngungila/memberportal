@@ -57,6 +57,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        DB::table('members')->update(['membership_type_id' => null]);
+        // No rollback — data migration
     }
 };
