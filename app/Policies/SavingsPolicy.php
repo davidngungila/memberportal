@@ -23,9 +23,9 @@ class SavingsPolicy
     public function view(User $user, $savings): bool
     {
         if (is_string($savings)) {
-            return $user->member_number === $savings;
+            return $user->membercode === $savings;
         }
 
-        return $user->member_number === ($savings->member_number ?? $savings->memberNumber ?? null);
+        return $user->membercode === ($savings->member_number ?? $savings->memberNumber ?? null);
     }
 }

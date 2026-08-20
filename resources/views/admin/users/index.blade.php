@@ -137,10 +137,10 @@
                 @endif
               </td>
               <td>
-                @if($user->member_number)
+                @if($user->membercode)
                   <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-primary-50 dark:bg-primary-900/40 font-mono text-xs font-bold text-primary-700 dark:text-primary-300">
                     <i class="fa-solid fa-id-card text-[9px] opacity-60"></i>
-                    {{ $user->member_number }}
+                    {{ $user->membercode }}
                   </span>
                 @else
                   <span class="text-xs text-primary-300 dark:text-primary-600 italic">-</span>

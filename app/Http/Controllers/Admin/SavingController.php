@@ -42,7 +42,7 @@ class SavingController extends Controller
         
         $savingsList = [];
         foreach ($users as $user) {
-            $memberNo = $user->member_number;
+            $memberNo = $user->membercode;
             if (! $memberNo) {
                 continue;
             }
@@ -144,7 +144,7 @@ class SavingController extends Controller
         Gate::authorize('admin-only');
 
         $validated = $request->validate([
-            'member_number' => 'required|string|exists:users,member_number',
+            'member_number' => 'required|string|exists:users,membercode',
             'transaction_type' => 'required|string|in:deposit,withdrawal,interest,flexi-deposit,rda-deposit,opening balance',
             'amount' => 'required|numeric|min:0',
             'date' => 'required|date',
@@ -201,7 +201,7 @@ class SavingController extends Controller
         
         Gate::authorize('admin-only');
 
-        $user = User::where('member_number', $memberNumber)->first();
+        $user = User::where('membercode', $memberNumber)->first();
 
         if (! $user) {
             $this->error("Member {$memberNumber} not found.");

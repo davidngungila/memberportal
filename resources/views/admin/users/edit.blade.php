@@ -287,7 +287,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
                 <label class="form-label uppercase tracking-wider text-primary-700 dark:text-primary-300">Member Number</label>
-                <input type="text" value="{{ $user->member_number }}" readonly class="form-input font-mono bg-primary-50 dark:bg-primary-900/30">
+                <input type="text" value="{{ $user->membercode }}" readonly class="form-input font-mono bg-primary-50 dark:bg-primary-900/30">
               </div>
               <div>
                 <label class="form-label uppercase tracking-wider text-primary-700 dark:text-primary-300">New Password</label>
@@ -464,7 +464,7 @@
         <div class="space-y-4">
           <div>
             <p class="text-xs text-primary-600 dark:text-primary-400 uppercase tracking-wider">Member Number</p>
-            <p class="font-mono text-sm font-bold text-primary-900 dark:text-white">{{ $user->member_number }}</p>
+            <p class="font-mono text-sm font-bold text-primary-900 dark:text-white">{{ $user->membercode }}</p>
           </div>
           <div>
             <p class="text-xs text-primary-600 dark:text-primary-400 uppercase tracking-wider">Name</p>

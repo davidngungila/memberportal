@@ -29,7 +29,7 @@ class LoanController extends Controller
         Gate::authorize('member-only');
 
         $user = Auth::user();
-        $memberNumber = $user->member_number;
+        $memberNumber = $user->membercode;
 
         // Use database loans instead of Google Sheets - same as dashboard
         $dbLoans = Loan::where('member_number', $memberNumber)->get();
@@ -99,7 +99,7 @@ class LoanController extends Controller
         Gate::authorize('member-only');
 
         $user = Auth::user();
-        $memberNumber = $user->member_number;
+        $memberNumber = $user->membercode;
 
         ActivityLog::create([
             'user_id' => $user->id,
@@ -228,7 +228,7 @@ class LoanController extends Controller
 
         try {
             $user = Auth::user();
-            $memberNumber = $user->member_number;
+            $memberNumber = $user->membercode;
 
             $validated = $request->validate([
                 'loan_product_id' => 'nullable|exists:loan_products,id',
@@ -363,7 +363,7 @@ class LoanController extends Controller
         Gate::authorize('member-only');
 
         $user = Auth::user();
-        $memberNumber = $user->member_number;
+        $memberNumber = $user->membercode;
 
         // Use database loan instead of Google Sheets
         $dbLoan = Loan::where('loan_number', $loanNumber)->where('member_number', $memberNumber)->first();

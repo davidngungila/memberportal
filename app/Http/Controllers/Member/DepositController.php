@@ -28,7 +28,7 @@ class DepositController extends Controller
         Gate::authorize('member-only');
 
         $user = Auth::user();
-        $memberNumber = $user->member_number;
+        $memberNumber = $user->membercode;
 
         $deposits = $this->repository->getMemberDeposits($memberNumber);
 
@@ -98,7 +98,7 @@ class DepositController extends Controller
         Gate::authorize('member-only');
 
         $user = Auth::user();
-        $memberNumber = $user->member_number;
+        $memberNumber = $user->membercode;
 
         $deposits = $this->repository->getMemberDeposits($memberNumber);
         $deposit = collect($deposits)->firstWhere('certificate_number', $certificateNumber);

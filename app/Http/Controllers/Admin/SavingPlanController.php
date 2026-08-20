@@ -91,7 +91,7 @@ class SavingPlanController extends Controller
         SavingPlan::create([
             'name' => $validated['name'],
             'user_id' => $validated['user_id'],
-            'member_number' => $user->member_number,
+            'member_number' => $user->membercode,
             'membership' => 'individual',
             'goal' => $validated['goal'],
             'period_type' => $validated['period_type'],
@@ -172,7 +172,7 @@ class SavingPlanController extends Controller
         $savingPlan->update([
             'name' => $validated['name'],
             'user_id' => $validated['user_id'],
-            'member_number' => $user->member_number,
+            'member_number' => $user->membercode,
             'membership' => 'individual',
             'goal' => $validated['goal'],
             'period_type' => $validated['period_type'],

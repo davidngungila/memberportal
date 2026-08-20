@@ -169,7 +169,7 @@
                             ['Disbursement Date', $loan['disbursement_date'] ? \Carbon\Carbon::parse($loan['disbursement_date'])->format('l, F j, Y') : '—'],
                             ['Maturity Date', $loan['maturity_date'] ? \Carbon\Carbon::parse($loan['maturity_date'])->format('l, F j, Y') : '—'],
                             ['Loan Product', $loan['loan_product'] ?? '—'],
-                            ['Member Number', $loan['member_number'] ?? auth()->user()->member_number],
+                            ['Member Number', $loan['member_number'] ?? auth()->user()->membercode],
                         ] as [$label, $val])
                             <div class="flex items-center justify-between py-2 border-b border-primary-100 dark:border-dark-border last:border-0 last:pb-0">
                                 <dt class="text-xs font-semibold text-primary-500 dark:text-primary-400">{{ $label }}</dt>

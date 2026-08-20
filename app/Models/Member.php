@@ -13,9 +13,6 @@ class Member extends Model
         'user_id',
         'membership_type_id',
         'full_name',
-        'first_name',
-        'middle_name',
-        'last_name',
         'gender',
         'phone',
         'email',
@@ -120,9 +117,6 @@ class Member extends Model
 
     public function getDisplayNameAttribute(): string
     {
-        if ($this->first_name && $this->last_name) {
-            return trim($this->first_name . ' ' . ($this->middle_name ?? '') . ' ' . $this->last_name);
-        }
         return $this->full_name ?? 'Unknown';
     }
 }

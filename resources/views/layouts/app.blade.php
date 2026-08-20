@@ -218,7 +218,7 @@ body { color: #064e3b; background: #f0fdf4; }
 </div>
 
 @php
-    $userData = $user ?? (auth()->check() ? auth()->user()->only(['id', 'name', 'email', 'role', 'member_number', 'phone', 'branch']) : null);
+    $userData = $user ?? (auth()->check() ? auth()->user()->only(['id', 'name', 'email', 'role', 'membercode', 'phone', 'branch']) : null);
 @endphp
 
 <script>

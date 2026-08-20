@@ -51,7 +51,7 @@ class UserController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
                     ->orWhere('email', 'like', "%{$search}%")
-                    ->orWhere('member_number', 'like', "%{$search}%")
+                    ->orWhere('membercode', 'like', "%{$search}%")
                     ->orWhere('phone', 'like', "%{$search}%");
             });
         }
@@ -118,7 +118,7 @@ class UserController extends Controller
                 'name' => trim($validated['first_name'] . ' ' . ($validated['middle_name'] ?? '') . ' ' . $validated['last_name']),
                 'email' => $validated['email_address'],
                 'password' => Hash::make($autoPassword),
-                'member_number' => $memberNumber,
+                'membercode' => $memberNumber,
                 'member_type_id' => $validated['member_type_id'],
                 'status' => $validated['status'],
             ]);
@@ -363,7 +363,7 @@ class UserController extends Controller
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
             'role' => $validated['role'],
-            'member_number' => $validated['member_number'] ?? null,
+            'membercode' => $validated['membercode'] ?? null,
             'member_type_id' => $validated['member_type_id'] ?? null,
             'status' => $request->input('status', 'active'),
         ]);
@@ -387,7 +387,7 @@ class UserController extends Controller
             'properties' => [
                 'user_email' => $user->email,
                 'user_role' => $validated['role'],
-                'member_number' => $validated['member_number'] ?? null,
+                'member_number' => $validated['membercode'] ?? null,
             ],
         ]);
 
@@ -953,8 +953,8 @@ class UserController extends Controller
             'status' => $request->input('status', $user->status ?? 'active'),
         ];
 
-        if (! empty($validated['member_number'])) {
-            $updateData['member_number'] = $validated['member_number'];
+        if (! empty($validated['membercode'])) {
+            $updateData['membercode'] = $validated['membercode'];
         }
 
         if (! empty($validated['password'])) {

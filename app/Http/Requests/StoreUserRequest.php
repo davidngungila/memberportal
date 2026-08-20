@@ -18,7 +18,7 @@ class StoreUserRequest extends FormRequest
             'email' => ['required', 'email', 'unique:users'],
             'password' => ['required', 'confirmed', 'min:8'],
             'role' => ['required', 'in:admin,member'],
-            'member_number' => ['nullable', 'unique:users'],
+            'membercode' => ['nullable', 'unique:users'],
             'member_type_id' => ['nullable', 'exists:member_types,id'],
         ];
     }

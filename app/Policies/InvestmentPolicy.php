@@ -23,9 +23,9 @@ class InvestmentPolicy
     public function view(User $user, $investment): bool
     {
         if (is_string($investment)) {
-            return $user->member_number === $investment;
+            return $user->membercode === $investment;
         }
 
-        return $user->member_number === ($investment->member_number ?? $investment->memberNumber ?? null);
+        return $user->membercode === ($investment->member_number ?? $investment->memberNumber ?? null);
     }
 }

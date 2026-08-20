@@ -23,9 +23,9 @@ class SwfPolicy
     public function view(User $user, $swf): bool
     {
         if (is_string($swf)) {
-            return $user->member_number === $swf;
+            return $user->membercode === $swf;
         }
 
-        return $user->member_number === ($swf->member_number ?? $swf->memberNumber ?? null);
+        return $user->membercode === ($swf->member_number ?? $swf->memberNumber ?? null);
     }
 }

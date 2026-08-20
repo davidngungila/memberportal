@@ -26,9 +26,6 @@ class ApplicationApprovalService
                 'membercode' => $membercode,
                 'user_id' => $application->user_id,
                 'membership_type_id' => $application->membership_type_id,
-                'first_name' => $personalDetail->first_name,
-                'middle_name' => $personalDetail->middle_name,
-                'last_name' => $personalDetail->last_name,
                 'full_name' => $personalDetail->full_name,
                 'gender' => $personalDetail->gender,
                 'phone' => $personalDetail->phone,
@@ -60,7 +57,7 @@ class ApplicationApprovalService
 
             $user = $application->user;
             $user->update([
-                'member_number' => $membercode,
+                'membercode' => $membercode,
                 'name' => $personalDetail->full_name,
             ]);
 

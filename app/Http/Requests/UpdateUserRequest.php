@@ -49,7 +49,7 @@ class UpdateUserRequest extends FormRequest
             'email' => ['required', Rule::unique('users', 'email')->ignore($userId ?? 0)],
             'password' => ['nullable', 'confirmed', 'min:8'],
             'role' => ['required'],
-            'member_number' => ['nullable', Rule::unique('users', 'member_number')->ignore($userId ?? 0)],
+            'membercode' => ['nullable', Rule::unique('users', 'membercode')->ignore($userId ?? 0)],
         ];
     }
 }

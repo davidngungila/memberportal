@@ -23,9 +23,9 @@ class LoanPolicy
     public function view(User $user, $loan): bool
     {
         if (is_string($loan)) {
-            return $user->member_number === $loan;
+            return $user->membercode === $loan;
         }
 
-        return $user->member_number === ($loan->member_number ?? $loan->memberNumber ?? null);
+        return $user->membercode === ($loan->member_number ?? $loan->memberNumber ?? null);
     }
 }

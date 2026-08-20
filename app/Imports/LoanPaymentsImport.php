@@ -71,7 +71,7 @@ class LoanPaymentsImport implements ToModel, WithHeadingRow, WithBatchInserts, W
         // Look up user_id from customer_id (member_number)
         $userId = null;
         if (!empty($customerId)) {
-            $user = \App\Models\User::where('member_number', $customerId)->first();
+            $user = \App\Models\User::where('membercode', $customerId)->first();
             if ($user) {
                 $userId = $user->id;
             }

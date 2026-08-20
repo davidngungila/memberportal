@@ -25,7 +25,7 @@ class NotificationController extends Controller
         Gate::authorize('member-only');
 
         $user = Auth::user();
-        $memberNumber = $user->member_number;
+        $memberNumber = $user->membercode;
 
         $readNotifications = Session::get('read_notifications', []);
         if (! is_array($readNotifications)) {
@@ -106,7 +106,7 @@ class NotificationController extends Controller
         Gate::authorize('member-only');
 
         $user = Auth::user();
-        $memberNumber = $user->member_number;
+        $memberNumber = $user->membercode;
 
         // Mark all database notifications as read for this user
         Notification::where('is_read', false)->update([
@@ -137,7 +137,7 @@ class NotificationController extends Controller
         Gate::authorize('member-only');
 
         $user = Auth::user();
-        $memberNumber = $user->member_number;
+        $memberNumber = $user->membercode;
 
         if ($id === 'all') {
             // Mark all database notifications as read

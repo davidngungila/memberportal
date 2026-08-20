@@ -41,7 +41,7 @@ class SwfMemberController extends Controller
             $user = User::findOrFail($request->input('user_id'));
             
             // Use user's member_number as SWF membership number
-            $membershipNumber = $user->member_number;
+            $membershipNumber = $user->membercode;
             
             $swfMember = SwfMember::create([
                 'user_id' => $user->id,

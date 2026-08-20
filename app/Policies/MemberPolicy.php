@@ -22,6 +22,6 @@ class MemberPolicy
 
     public function view(User $user, string $memberNumber): bool
     {
-        return $user->member_number === $memberNumber;
+        return $user->membercode === $memberNumber;
     }
 }

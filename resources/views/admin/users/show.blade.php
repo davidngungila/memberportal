@@ -40,10 +40,10 @@
                 {{ ucfirst($user->status) }}
               </span>
             </div>
-            @if($user->member_number)
+            @if($user->membercode)
             <div>
               <p class="text-xs text-primary-600 dark:text-primary-400">Member Number</p>
-              <p class="text-sm font-mono font-semibold text-primary-900 dark:text-white">{{ $user->member_number }}</p>
+              <p class="text-sm font-mono font-semibold text-primary-900 dark:text-white">{{ $user->membercode }}</p>
             </div>
             @endif
             @if($user->memberType)

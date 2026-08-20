@@ -27,7 +27,7 @@ class InvestmentController extends Controller
         Gate::authorize('member-only');
 
         $user = Auth::user();
-        $memberNumber = $user->member_number;
+        $memberNumber = $user->membercode;
 
         $investments = Investment::with(['investmentProduct'])
             ->where('member_number', $memberNumber)
@@ -101,7 +101,7 @@ class InvestmentController extends Controller
         Gate::authorize('member-only');
 
         $user = Auth::user();
-        $memberNumber = $user->member_number;
+        $memberNumber = $user->membercode;
 
         $investmentId = app('App\Services\EncryptedIdService')->decrypt($encryptedId);
 

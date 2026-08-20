@@ -6,7 +6,7 @@
 @php
     $memberStatus = $member['status'] ?? 'Active';
     $statusActive = strtolower($memberStatus) === 'active';
-    $memberNum = $member['membercode'] ?? $user->member_number ?? 'N/A';
+    $memberNum = $member['membercode'] ?? $user->membercode ?? 'N/A';
 
     function fmtTsh($val): string {
         return 'TSh ' . number_format((float)$val, 2, '.', ',');

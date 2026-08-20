@@ -60,8 +60,8 @@ class InvestmentController extends Controller
 
         // Load all users by member_number for efficient lookup
         $memberNumbers = $investments->pluck('member_number')->filter()->unique();
-        $usersByMemberNumber = User::whereIn('member_number', $memberNumbers)
-            ->pluck('name', 'member_number')
+        $usersByMemberNumber = User::whereIn('membercode', $memberNumbers)
+            ->pluck('name', 'membercode')
             ->toArray();
 
         // Enrich investments with calculated values while preserving pagination
@@ -308,7 +308,7 @@ class InvestmentController extends Controller
         }
 
         // Load user by member_number for member name display
-        $user = User::where('member_number', $memberNumber)->first();
+        $user = User::where('membercode', $memberNumber)->first();
         $memberName = $user ? $user->name : $memberNumber;
         $memberEmail = $user ? $user->email : null;
 

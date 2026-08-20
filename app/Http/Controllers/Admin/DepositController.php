@@ -126,7 +126,7 @@ class DepositController extends Controller
         try {
             $deposit = Deposit::create([
                 'user_id' => $validated['user_id'],
-                'member_number' => $user->member_number,
+                'member_number' => $user->membercode,
                 'certificate_number' => $certificateNumber,
                 'product_id' => $validated['product_id'] ?? null,
                 'amount' => $validated['amount'],
@@ -146,11 +146,11 @@ class DepositController extends Controller
                 'user_id' => Auth::id(),
                 'subject_type' => 'deposit',
                 'subject_id' => $deposit->id,
-                'description' => "Admin created deposit {$certificateNumber} for member {$user->member_number}",
+                'description' =>                 "Admin created deposit {$certificateNumber} for member {$user->membercode}",
                 'ip_address' => $request->ip(),
                 'user_agent' => $request->userAgent(),
                 'properties' => [
-                    'member_number' => $user->member_number,
+                'member_number' => $user->membercode,
                     'member_name' => $user->name,
                     'certificate_number' => $certificateNumber,
                     'amount' => $validated['amount'],

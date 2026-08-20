@@ -252,7 +252,7 @@
               <p class="text-xs font-semibold leading-tight" :class="darkMode ? 'text-white' : 'text-primary-900'"
                  x-text="user ? user.name : 'Member'"></p>
               <p class="text-[10px] font-mono" :class="darkMode ? 'text-primary-400' : 'text-primary-500'"
-                 x-text="user && user.member_number ? user.member_number : 'FTN-00001'"></p>
+                 x-text="user && user.membercode ? user.membercode : 'FTN-00001'"></p>
             </div>
             <i class="fa-solid fa-chevron-down text-[10px] hidden lg:block" :class="darkMode ? 'text-primary-400' : 'text-primary-400'"></i>
           </button>
@@ -268,7 +268,7 @@
               <p class="text-xs font-bold" :class="darkMode ? 'text-white' : 'text-primary-900'"
                  x-text="user ? user.name : 'Member User'"></p>
               <p class="text-[11px] mt-0.5 font-mono" :class="darkMode ? 'text-primary-400' : 'text-gray-500'"
-                 x-text="user && user.member_number ? 'Member No: ' + user.member_number : 'Member No: FTN-00001'"></p>
+                 x-text="user && user.membercode ? 'Member No: ' + user.membercode : 'Member No: FTN-00001'"></p>
               <p class="text-[11px] mt-0.5" :class="darkMode ? 'text-primary-400' : 'text-gray-500'"
                  x-text="user ? user.email : 'member@feedtan.co.tz'"></p>
               <span class="role-tag role-member mt-2 inline-block">Member</span>

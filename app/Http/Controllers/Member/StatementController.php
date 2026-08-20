@@ -46,7 +46,7 @@ class StatementController extends Controller
         Gate::authorize('member-only');
 
         $user = Auth::user();
-        $memberNumber = $user->member_number;
+        $memberNumber = $user->membercode;
 
         $fromDate = $request->input('from', date('Y-m-01', strtotime('-3 months')));
         $toDate = $request->input('to', date('Y-m-d'));
@@ -90,7 +90,7 @@ class StatementController extends Controller
         }
 
         $user = Auth::user();
-        $memberNumber = $user->member_number;
+        $memberNumber = $user->membercode;
 
         $fromDate = $request->input('from', date('Y-m-01', strtotime('-3 months')));
         $toDate = $request->input('to', date('Y-m-d'));

@@ -643,7 +643,7 @@ class GoogleSheetRepository implements GoogleSheetRepositoryInterface
         
         try {
             // Get user_id from member_number
-            $user = \App\Models\User::where('member_number', $memberNumber)->first();
+            $user = \App\Models\User::where('membercode', $memberNumber)->first();
             if (!$user) {
                 return [];
             }
@@ -679,7 +679,7 @@ class GoogleSheetRepository implements GoogleSheetRepositoryInterface
         
         try {
             // Get user_id from member_number
-            $user = \App\Models\User::where('member_number', $memberNumber)->first();
+            $user = \App\Models\User::where('membercode', $memberNumber)->first();
             if (!$user) {
                 return [];
             }

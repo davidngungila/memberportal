@@ -184,7 +184,7 @@ class MemberController extends Controller
             
             // Try to get photo from User table if not in Member table
             if (empty($member['photo'])) {
-                $user = \App\Models\User::where('member_number', $memberNumber)->first();
+                $user = \App\Models\User::where('membercode', $memberNumber)->first();
                 if ($user && $user->photo) {
                     $member['photo'] = $user->photo;
                 }
@@ -195,7 +195,7 @@ class MemberController extends Controller
             try {
                 $dbLoans = \App\Models\LoanInformation::where('customer_id', $memberNumber)
                     ->orWhere('user_id', function($query) use ($memberNumber) {
-                        $query->select('id')->from('users')->where('member_number', $memberNumber);
+                        $query->select('id')->from('users')->where('membercode', $memberNumber);
                     })
                     ->get();
                 
@@ -333,7 +333,7 @@ class MemberController extends Controller
             $loanPayments = [];
             $loansInformation = [];
             try {
-                $user = \App\Models\User::where('member_number', $memberNumber)->first();
+                $user = \App\Models\User::where('membercode', $memberNumber)->first();
                 if ($user) {
                     $loanPayments = \App\Models\LoanPayment::byUserId($user->id)
                         ->orderBy('payment_date', 'desc')
@@ -436,7 +436,7 @@ class MemberController extends Controller
         // Get loans from database
         $loans = [];
         try {
-            $user = \App\Models\User::where('member_number', $memberNumber)->first();
+            $user = \App\Models\User::where('membercode', $memberNumber)->first();
             if ($user) {
                 $loans = \App\Models\LoanInformation::byUserId($user->id)
                     ->orderBy('loan_start_date', 'desc')

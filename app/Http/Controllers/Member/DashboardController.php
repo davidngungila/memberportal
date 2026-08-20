@@ -28,7 +28,7 @@ class DashboardController extends Controller
     public function index(Request $request): View|RedirectResponse
     {
         $user = Auth::user();
-        $memberNumber = $user->member_number;
+        $memberNumber = $user->membercode;
 
         if (empty($memberNumber)) {
             $this->error('Your account is missing a Member Number. Please contact the administrator to update your profile.');

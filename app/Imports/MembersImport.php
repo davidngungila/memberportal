@@ -80,7 +80,7 @@ class MembersImport implements ToCollection, WithHeadingRow
                             'email' => $memberData['email'],
                             'password' => Hash::make('password123'), // Default password
                             'role' => 'member',
-                            'member_number' => $memberData['membercode'],
+                            'membercode' => $memberData['membercode'],
                             'photo' => $memberData['photo'], // Include photo if available
                         ]);
                         $this->createdUsers[] = $memberData['email'];

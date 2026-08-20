@@ -23,9 +23,9 @@ class DepositPolicy
     public function view(User $user, $deposit): bool
     {
         if (is_string($deposit)) {
-            return $user->member_number === $deposit;
+            return $user->membercode === $deposit;
         }
 
-        return $user->member_number === ($deposit->member_number ?? $deposit->memberNumber ?? null);
+        return $user->membercode === ($deposit->member_number ?? $deposit->memberNumber ?? null);
     }
 }

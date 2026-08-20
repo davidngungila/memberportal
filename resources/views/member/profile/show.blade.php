@@ -10,7 +10,7 @@
 
     $displayName = $fullName ?? $user->name ?? 'Member User';
     $displayInitials = $initials ?? strtoupper(substr($displayName, 0, 1));
-    $displayMemberNumber = $user->member_number ?? 'FTN-00001';
+    $displayMemberNumber = $user->membercode ?? 'FTN-00001';
     $status = $user->status ?? 'Active';
     $statusActive = strtolower($status) === 'active';
 

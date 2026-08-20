@@ -49,7 +49,7 @@ class AppServiceProvider extends ServiceProvider
         });
 
         Gate::define('view-member-data', function (User $user, string $memberNumber): bool {
-            return $user->isAdmin() || $user->member_number === $memberNumber;
+            return $user->isAdmin() || $user->membercode === $memberNumber;
         });
 
         // Blade directive to encrypt IDs

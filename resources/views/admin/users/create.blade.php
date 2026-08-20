@@ -405,7 +405,7 @@
         <div class="space-y-4">
           <div>
             <p class="text-xs text-primary-600 dark:text-primary-400">Member Number</p>
-            <p x-text="summary.member_number || 'Auto-generated'" class="text-sm font-mono font-semibold text-primary-900 dark:text-white">Auto-generated</p>
+            <p x-text="summary.membercode || 'Auto-generated'" class="text-sm font-mono font-semibold text-primary-900 dark:text-white">Auto-generated</p>
           </div>
           <div>
             <p class="text-xs text-primary-600 dark:text-primary-400">Registration Date</p>
@@ -439,7 +439,7 @@ function memberCreateForm() {
     currentTab: 1,
     userId: null,
     summary: {
-      member_number: null,
+      membercode: null,
       registration_date: null,
       member_type: null,
       status: null
@@ -493,7 +493,7 @@ function memberCreateForm() {
         
         if (data.success) {
           this.userId = data.user_id;
-          this.summary.member_number = 'MB' + new Date().toISOString().slice(2,10).replace(/-/g,'') + Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+          this.summary.membercode = 'MB' + new Date().toISOString().slice(2,10).replace(/-/g,'') + Math.floor(Math.random() * 10000).toString().padStart(4, '0');
           this.summary.registration_date = formData.get('registration_date');
           const memberTypeSelect = form.querySelector('[name="member_type_id"]');
           this.summary.member_type = memberTypeSelect.options[memberTypeSelect.selectedIndex].text;

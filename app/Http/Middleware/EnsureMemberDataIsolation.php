@@ -16,7 +16,7 @@ class EnsureMemberDataIsolation
         }
 
         $user = $request->user();
-        $userMemberNumber = $user->member_number;
+        $userMemberNumber = $user->membercode;
 
         $routeMemberNumber = $request->route('member_number') ?? $request->route('id');
         $requestMemberNumber = $request->input('member_number');

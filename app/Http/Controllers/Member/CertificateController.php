@@ -18,7 +18,7 @@ class CertificateController extends Controller
     public function index()
     {
         $user = auth()->user();
-        $memberNumber = $user->member_number;
+        $memberNumber = $user->membercode;
 
         $loanCertificates = LoanCompletionCertificate::whereHas('loan', function($query) use ($memberNumber) {
             $query->where('member_number', $memberNumber);
@@ -36,14 +36,14 @@ class CertificateController extends Controller
         $user = auth()->user();
         
         // Generate unique verification code
-        $verificationCode = 'CERT-' . strtoupper($user->member_number) . '-' . Str::random(8);
+        $verificationCode = 'CERT-' . strtoupper($user->membercode) . '-' . Str::random(8);
         
         // Generate verification URL
         $verificationUrl = url('/verify-certificate/' . $verificationCode);
         
         return response()->json([
             'name' => $user->name,
-            'member_number' => $user->member_number,
+            'member_number' => $user->membercode,
             'registration_date' => $user->created_at ? $user->created_at->format('Y-m-d') : 'N/A',
             'branch' => $user->branch ?? 'N/A',
             'status' => $user->status ?? 'Active',
@@ -58,7 +58,7 @@ class CertificateController extends Controller
     {
         $certificate = LoanCompletionCertificate::with(['loan', 'loan.member'])
             ->whereHas('loan', function($query) {
-                $query->where('member_number', auth()->user()->member_number);
+                $query->where('member_number', auth()->user()->membercode);
             })
             ->findOrFail($id);
 
@@ -69,7 +69,7 @@ class CertificateController extends Controller
     {
         $certificate = LoanCompletionCertificate::with(['loan', 'loan.member'])
             ->whereHas('loan', function($query) {
-                $query->where('member_number', auth()->user()->member_number);
+                $query->where('member_number', auth()->user()->membercode);
             })
             ->findOrFail($id);
 
@@ -80,7 +80,7 @@ class CertificateController extends Controller
     {
         $certificate = ShareCertificate::with(['sharePurchase', 'sharePurchase.shareProduct', 'sharePurchase.member'])
             ->whereHas('sharePurchase', function($query) {
-                $query->where('member_number', auth()->user()->member_number);
+                $query->where('member_number', auth()->user()->membercode);
             })
             ->findOrFail($id);
 
@@ -91,7 +91,7 @@ class CertificateController extends Controller
     {
         $certificate = ShareCertificate::with(['sharePurchase', 'sharePurchase.shareProduct', 'sharePurchase.member'])
             ->whereHas('sharePurchase', function($query) {
-                $query->where('member_number', auth()->user()->member_number);
+                $query->where('member_number', auth()->user()->membercode);
             })
             ->findOrFail($id);
 

@@ -28,7 +28,7 @@ class SavingController extends Controller
         Gate::authorize('member-only');
 
         $user = Auth::user();
-        $memberNumber = $user->member_number;
+        $memberNumber = $user->membercode;
 
         $savings = $this->repository->getMemberSavings($memberNumber);
 

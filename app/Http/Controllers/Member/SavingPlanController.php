@@ -20,7 +20,7 @@ class SavingPlanController extends Controller
     public function index(Request $request): View
     {
         $user = Auth::user();
-        $memberNumber = $user->member_number;
+        $memberNumber = $user->membercode;
 
         // Get the member's saving plan
         $savingPlan = SavingPlan::where('member_number', $memberNumber)->first();
