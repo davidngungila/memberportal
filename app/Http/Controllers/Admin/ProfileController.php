@@ -46,6 +46,7 @@ class ProfileController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'current_password' => ['nullable', 'required_with:new_password'],
             'new_password' => ['nullable', 'string', 'min:8', 'confirmed'],
+            'photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
         ];
 
         if ($member) {
@@ -54,7 +55,6 @@ class ProfileController extends Controller
             $rules['address'] = ['nullable', 'string', 'max:500'];
             $rules['occupation'] = ['nullable', 'string', 'max:255'];
             $rules['employer'] = ['nullable', 'string', 'max:255'];
-            $rules['photo'] = ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'];
         }
 
         $validated = $request->validate($rules);
@@ -68,28 +68,47 @@ class ProfileController extends Controller
         }
 
         $user->name = $validated['name'];
-        $user->save();
 
-        if ($member) {
-            if ($request->hasFile('photo')) {
-                $file = $request->file('photo');
-                $fileName = time() . '_' . $file->getClientOriginalName();
-                $filePath = $file->storeAs('profile-photos', $fileName, 'public');
+        // Handle photo upload
+        if ($request->hasFile('photo')) {
+            $file = $request->file('photo');
+            $fileName = time() . '_' . $file->getClientOriginalName();
+            $filePath = $file->storeAs('profile-photos', $fileName, 'public');
 
+            // Delete old photo
+            if ($member) {
                 if ($member->profile_photo && Storage::disk('public')->exists($member->profile_photo)) {
                     Storage::disk('public')->delete($member->profile_photo);
                 }
-
                 $member->profile_photo = $filePath;
+                $member->save();
+            } else {
+                if ($user->photo && Storage::disk('public')->exists($user->photo)) {
+                    Storage::disk('public')->delete($user->photo);
+                }
+                $user->photo = $filePath;
             }
+        }
 
-            if ($request->input('remove_photo')) {
+        // Handle photo removal
+        if ($request->input('remove_photo')) {
+            if ($member) {
                 if ($member->profile_photo && Storage::disk('public')->exists($member->profile_photo)) {
                     Storage::disk('public')->delete($member->profile_photo);
                 }
                 $member->profile_photo = null;
+                $member->save();
+            } else {
+                if ($user->photo && Storage::disk('public')->exists($user->photo)) {
+                    Storage::disk('public')->delete($user->photo);
+                }
+                $user->photo = null;
             }
+        }
 
+        $user->save();
+
+        if ($member) {
             $member->email = $validated['email'] ?? $member->email;
             $member->phone = $validated['phone'] ?? $member->phone;
             $member->residential_address = $validated['address'] ?? $member->residential_address;

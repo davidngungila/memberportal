@@ -23,6 +23,7 @@ class User extends Authenticatable
         'role',
         'membercode',
         'branch',
+        'photo',
         'status',
         'email_verified_at',
     ];
@@ -134,7 +135,7 @@ class User extends Authenticatable
 
     public function getPhotoAttribute()
     {
-        return $this->member?->profile_photo;
+        return $this->attributes['photo'] ?? $this->member?->profile_photo;
     }
 
     public function getRegistrationDateAttribute()
