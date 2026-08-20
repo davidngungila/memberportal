@@ -70,7 +70,7 @@ class SavingController extends Controller
             $savingsList[] = [
                 'member_number' => $memberNo,
                 'member_name' => $user->name,
-                'member_status' => $user->status ?? 'Active',
+                'member_status' => $user->status ?? 'active',
                 'member_branch' => $user->branch ?? '-',
                 'balance' => $balance,
                 'interest_earned' => $interestEarned,

@@ -32,7 +32,7 @@ class MembersImport implements ToCollection, WithHeadingRow
                     'gender' => $row['gender'] ?? $row['Gender'] ?? null,
                     'phone' => $row['phone'] ?? $row['Phone'] ?? null,
                     'email' => $row['email'] ?? $row['Email'] ?? null,
-                    'status' => $row['status'] ?? $row['Status'] ?? 'Active',
+                    'status' => $row['status'] ?? $row['Status'] ?? 'active',
                     'registration_date' => $row['registration_date'] ?? $row['Registration_Date'] ?? now()->format('Y-m-d'),
                     'date_of_birth' => $row['date_of_birth'] ?? $row['Date_Of_Birth'] ?? null,
                     'national_id' => $row['national_id'] ?? $row['National_ID'] ?? null,

@@ -41,7 +41,7 @@ class ApplicationApprovalService
                     $personalDetail->region,
                 ])->filter()->implode(', '),
                 'marital_status' => $personalDetail->marital_status,
-                'status' => 'Active',
+                'status' => 'active',
                 'registration_status' => 'registered',
                 'registration_date' => now(),
                 'joined_at' => now(),

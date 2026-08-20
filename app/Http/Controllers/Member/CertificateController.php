@@ -46,7 +46,7 @@ class CertificateController extends Controller
             'member_number' => $user->membercode,
             'registration_date' => $user->created_at ? $user->created_at->format('Y-m-d') : 'N/A',
             'branch' => $user->branch ?? 'N/A',
-            'status' => $user->status ?? 'Active',
+                'status' => $user->status ?? 'active',
             'organization' => 'FEED TAN CMG SACCO',
             'issue_date' => now()->format('m/d/Y'),
             'verification_code' => $verificationCode,
