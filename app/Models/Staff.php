@@ -6,6 +6,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Staff extends Model
@@ -49,13 +50,24 @@ class Staff extends Model
 
     const EMPLOYMENT_TYPES = ['full_time', 'part_time', 'contract', 'intern'];
 
-    protected $casts = [
-        'date_of_birth' => 'date',
-        'hire_date' => 'date',
-        'end_date' => 'date',
-        'license_expiry' => 'date',
-        'salary' => 'decimal:2',
-        'year_of_graduation' => 'integer',
+    const ROLES = [
+        'deposit_officer' => 'Deposit Officer',
+        'investment_officer' => 'Investment Officer',
+        'loan_officer' => 'Loan Officer',
+        'swf_officer' => 'SWF Officer',
+        'system_administrator' => 'System Administrator',
+        'secretary' => 'Secretary',
+        'chairperson' => 'Chairperson',
+    ];
+
+    const ROLE_MODULES = [
+        'deposit_officer' => ['savings', 'deposits', 'saving_plans'],
+        'investment_officer' => ['investments'],
+        'loan_officer' => ['loans'],
+        'swf_officer' => ['swf'],
+        'system_administrator' => ['users', 'staff', 'settings', 'roles', 'permissions', 'reports'],
+        'secretary' => ['applications', 'members', 'notifications', 'communication'],
+        'chairperson' => ['approvals', 'reports', 'applications'],
     ];
 
     protected static function boot(): void
@@ -85,6 +97,11 @@ class Staff extends Model
         return $this->belongsTo(Member::class);
     }
 
+    public function staffRoles(): BelongsToMany
+    {
+        return $this->belongsToMany(StaffRole::class, 'staff_roles', 'staff_id', 'role');
+    }
+
     public function scopeActive($query)
     {
         return $query->where('status', 'active');
@@ -93,6 +110,48 @@ class Staff extends Model
     public function scopeByDepartment($query, string $department)
     {
         return $query->where('department', $department);
+    }
+
+    public function scopeByRole($query, string $role)
+    {
+        return $query->whereHas('staffRoles', function ($q) use ($role) {
+            $q->where('role', $role);
+        });
+    }
+
+    public function hasRole(string $role): bool
+    {
+        return $this->staffRoles()->where('role', $role)->exists();
+    }
+
+    public function hasAnyRole(array $roles): bool
+    {
+        return $this->staffRoles()->whereIn('role', $roles)->exists();
+    }
+
+    public function canAccessModule(string $module): bool
+    {
+        if ($this->hasRole('system_administrator')) {
+            return true;
+        }
+
+        $staffRoles = $this->staffRoles()->pluck('role')->toArray();
+
+        foreach ($staffRoles as $role) {
+            $modules = self::ROLE_MODULES[$role] ?? [];
+            if (in_array($module, $modules)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public function getRoleLabelsAttribute(): array
+    {
+        return $this->staffRoles->pluck('role')->map(function ($role) {
+            return self::ROLES[$role] ?? $role;
+        })->toArray();
     }
 
     public function getDisplayNameAttribute(): string

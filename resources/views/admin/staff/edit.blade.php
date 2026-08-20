@@ -236,6 +236,54 @@
       </div>
     </div>
 
+    {{-- Staff Roles --}}
+    <div class="glass rounded-2xl overflow-hidden border border-primary-100 dark:border-dark-border">
+      <div class="flex items-center gap-3 px-5 py-4 border-b border-primary-100 dark:border-dark-border bg-primary-50/40 dark:bg-primary-900/20">
+        <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center flex-shrink-0 shadow-sm">
+          <i class="fa-solid fa-user-shield text-white text-sm"></i>
+        </div>
+        <div>
+          <h3 class="font-bold text-primary-900 dark:text-white text-sm">STAFF ROLES</h3>
+          <p class="text-[11px] text-primary-500 dark:text-primary-400">Select modules this staff can access (one staff can have multiple roles)</p>
+        </div>
+      </div>
+      <div class="p-5">
+        @php
+          $existingRoles = old('staff_roles', $staff->staffRoles->pluck('role')->toArray());
+        @endphp
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          @foreach(\App\Models\Staff::ROLES as $key => $label)
+            <label class="flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all
+                          {{ in_array($key, $existingRoles) ? 'border-amber-300 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-700' : 'border-primary-100 dark:border-dark-border hover:border-primary-300 dark:hover:border-primary-700' }}">
+              <input type="checkbox" name="staff_roles[]" value="{{ $key }}"
+                     {{ in_array($key, $existingRoles) ? 'checked' : '' }}
+                     class="mt-0.5 rounded border-gray-300 text-amber-600 focus:ring-amber-500">
+              <div class="min-w-0">
+                <p class="text-sm font-semibold text-primary-900 dark:text-white">{{ $label }}</p>
+                <p class="text-[10px] text-primary-500 dark:text-primary-400 mt-0.5">
+                  @if($key === 'deposit_officer')
+                    Savings, Deposits, Saving Plans
+                  @elseif($key === 'investment_officer')
+                    Investments
+                  @elseif($key === 'loan_officer')
+                    Loans
+                  @elseif($key === 'swf_officer')
+                    SWF
+                  @elseif($key === 'system_administrator')
+                    Users, Staff, Settings, Reports
+                  @elseif($key === 'secretary')
+                    Applications, Members, Notifications
+                  @elseif($key === 'chairperson')
+                    Approvals, Reports, Applications
+                  @endif
+                </p>
+              </div>
+            </label>
+          @endforeach
+        </div>
+      </div>
+    </div>
+
     {{-- Submit --}}
     <div class="flex items-center justify-end gap-3">
       <a href="{{ route('admin.staff.show', app(\App\Services\EncryptedIdService::class)->encrypt($staff->id)) }}" class="px-5 py-2.5 rounded-xl bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-white text-sm font-bold transition-colors">

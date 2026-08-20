@@ -48,6 +48,16 @@
                 <span class="badge badge-red"><i class="fa-solid fa-ban text-[9px] mr-1"></i> Terminated</span>
               @endif
             </div>
+            @if($staff->staffRoles->count())
+              <div class="mt-2 flex flex-wrap items-center justify-center md:justify-start gap-1.5">
+                @foreach($staff->staffRoles as $role)
+                  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-[11px] font-bold border border-amber-200 dark:border-amber-800/50">
+                    <i class="fa-solid fa-shield-halved text-[9px]"></i>
+                    {{ \App\Models\Staff::ROLES[$role->role] ?? $role->role }}
+                  </span>
+                @endforeach
+              </div>
+            @endif
           </div>
           <div class="flex items-center gap-2">
             <a href="{{ route('admin.staff.edit', app(\App\Services\EncryptedIdService::class)->encrypt($staff->id)) }}"

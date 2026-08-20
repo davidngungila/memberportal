@@ -63,6 +63,7 @@
             <th>Position</th>
             <th>Phone</th>
             <th>Member Link</th>
+            <th>Roles</th>
             <th>Status</th>
             <th>Hired</th>
             <th class="text-right">Actions</th>
@@ -120,6 +121,17 @@
                 @endif
               </td>
               <td>
+                <div class="flex flex-wrap gap-1">
+                  @forelse($s->staffRoles as $role)
+                    <span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-[10px] font-bold">
+                      {{ \App\Models\Staff::ROLES[$role->role] ?? $role->role }}
+                    </span>
+                  @empty
+                    <span class="text-[10px] text-primary-300 dark:text-primary-600 italic">None</span>
+                  @endforelse
+                </div>
+              </td>
+              <td>
                 @if($s->status === 'active')
                   <span class="badge badge-green"><i class="fa-solid fa-circle-check text-[9px] mr-1"></i> Active</span>
                 @elseif($s->status === 'inactive')
@@ -162,7 +174,7 @@
             </tr>
           @empty
             <tr>
-              <td colspan="10" class="text-center py-16 text-primary-500 dark:text-primary-400">
+              <td colspan="11" class="text-center py-16 text-primary-500 dark:text-primary-400">
                 <i class="fa-solid fa-id-badge text-4xl mb-4 block opacity-30"></i>
                 <p class="text-sm font-semibold mb-1">No staff found</p>
                 <p class="text-xs">

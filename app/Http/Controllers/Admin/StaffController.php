@@ -32,7 +32,7 @@ class StaffController extends Controller
         $status = $request->input('status', '');
         $department = $request->input('department', '');
 
-        $query = Staff::with(['member']);
+        $query = Staff::with(['member', 'staffRoles']);
 
         if (!empty($search)) {
             $query->where(function ($q) use ($search) {
@@ -65,6 +65,8 @@ class StaffController extends Controller
 
         $departments = Staff::distinct()->whereNotNull('department')->pluck('department');
 
+        $searchQuery = $search;
+
         ActivityLog::create([
             'user_id' => Auth::id(),
             'description' => 'Admin viewed staff list',
@@ -78,7 +80,6 @@ class StaffController extends Controller
             'perPage',
             'departments',
         ), [
-            'searchQuery' => $search,
             'statusFilter' => $status,
             'departmentFilter' => $department,
         ]);
@@ -130,7 +131,12 @@ class StaffController extends Controller
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'member_id' => 'nullable|exists:members,id',
             'user_id' => 'nullable|exists:users,id',
+            'staff_roles' => 'nullable|array',
+            'staff_roles.*' => 'string|in:' . implode(',', array_keys(Staff::ROLES)),
         ]);
+
+        $roles = $validated['staff_roles'] ?? [];
+        unset($validated['staff_roles']);
 
         $validated['status'] = $validated['status'] ?? 'active';
 
@@ -139,6 +145,10 @@ class StaffController extends Controller
         }
 
         $staff = Staff::create($validated);
+
+        foreach ($roles as $role) {
+            $staff->staffRoles()->attach($role);
+        }
 
         ActivityLog::create([
             'user_id' => Auth::id(),
@@ -161,7 +171,7 @@ class StaffController extends Controller
     public function show(Request $request, string $encryptedId): View
     {
         $id = $this->encryptedIdService->decrypt($encryptedId);
-        $staff = Staff::with(['member', 'user'])->findOrFail($id);
+        $staff = Staff::with(['member', 'user', 'staffRoles'])->findOrFail($id);
 
         ActivityLog::create([
             'user_id' => Auth::id(),
@@ -178,7 +188,7 @@ class StaffController extends Controller
     public function edit(Request $request, string $encryptedId): View
     {
         $id = $this->encryptedIdService->decrypt($encryptedId);
-        $staff = Staff::findOrFail($id);
+        $staff = Staff::with('staffRoles')->findOrFail($id);
         $members = Member::active()->whereDoesntHave('staff')->orWhere('id', $staff->member_id)->orderBy('full_name')->get();
 
         ActivityLog::create([
@@ -229,7 +239,12 @@ class StaffController extends Controller
             'remove_photo' => 'nullable|boolean',
             'member_id' => 'nullable|exists:members,id',
             'user_id' => 'nullable|exists:users,id',
+            'staff_roles' => 'nullable|array',
+            'staff_roles.*' => 'string|in:' . implode(',', array_keys(Staff::ROLES)),
         ]);
+
+        $roles = $validated['staff_roles'] ?? [];
+        unset($validated['staff_roles']);
 
         if ($request->hasFile('photo')) {
             if ($staff->photo && Storage::disk('public')->exists($staff->photo)) {
@@ -246,6 +261,8 @@ class StaffController extends Controller
         }
 
         $staff->update($validated);
+
+        $staff->staffRoles()->sync($roles);
 
         ActivityLog::create([
             'user_id' => Auth::id(),
